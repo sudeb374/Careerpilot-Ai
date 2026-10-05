@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "AI-powered career discovery and internship matching platform for college students and freshers. Discover opportunities, improve your resume, and track your career progress.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
