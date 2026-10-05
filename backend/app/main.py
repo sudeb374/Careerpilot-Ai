@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.routers.profile import router as profile_router
+from app.routers.skills import router as skills_router
 
 app = FastAPI(
     title="CareerPilot AI API",
@@ -17,6 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(profile_router)
+app.include_router(skills_router)
 
 
 @app.get("/")

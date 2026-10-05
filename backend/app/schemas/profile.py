@@ -1,0 +1,267 @@
+from datetime import date, datetime
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+
+class ProfileBase(BaseModel):
+    full_name: str = Field(..., max_length=255)
+    headline: Optional[str] = Field(None, max_length=500)
+    location: Optional[str] = Field(None, max_length=255)
+
+
+class ProfileCreate(ProfileBase):
+    pass
+
+
+class ProfileUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, max_length=255)
+    headline: Optional[str] = Field(None, max_length=500)
+    location: Optional[str] = Field(None, max_length=255)
+
+
+class ProfileResponse(ProfileBase):
+    id: UUID
+    user_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EducationBase(BaseModel):
+    institution: str = Field(..., max_length=255)
+    degree: str = Field(..., max_length=255)
+    field_of_study: Optional[str] = Field(None, max_length=255)
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    currently_studying: Optional[bool] = False
+    grade: Optional[str] = Field(None, max_length=50)
+
+
+class EducationCreate(EducationBase):
+    pass
+
+
+class EducationUpdate(BaseModel):
+    institution: Optional[str] = Field(None, max_length=255)
+    degree: Optional[str] = Field(None, max_length=255)
+    field_of_study: Optional[str] = Field(None, max_length=255)
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    currently_studying: Optional[bool] = None
+    grade: Optional[str] = Field(None, max_length=50)
+
+
+class EducationResponse(EducationBase):
+    id: UUID
+    profile_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SkillCategoryResponse(BaseModel):
+    id: UUID
+    name: str
+    slug: str
+    description: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SkillResponse(BaseModel):
+    id: UUID
+    name: str
+    category: SkillCategoryResponse | None = None
+    description: Optional[str] = None
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SkillSearchResponse(BaseModel):
+    id: UUID
+    name: str
+    category: Optional[str] = None
+    matched_by: str  # "name" or "alias"
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProfileSkillBase(BaseModel):
+    skill_name: str = Field(..., max_length=100)
+    proficiency: Optional[str] = Field(None, max_length=50)
+
+
+class ProfileSkillCreate(ProfileSkillBase):
+    pass
+
+
+class ProfileSkillUpdate(BaseModel):
+    proficiency: Optional[str] = Field(None, max_length=50)
+
+
+class ProfileSkillResponse(BaseModel):
+    id: UUID
+    profile_id: UUID
+    skill_id: Optional[UUID] = None
+    custom_skill_name: Optional[str] = None
+    skill_name: str
+    proficiency: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProjectBase(BaseModel):
+    name: str = Field(..., max_length=255)
+    description: Optional[str] = None
+    url: Optional[str] = Field(None, max_length=500)
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+
+
+class ProjectCreate(ProjectBase):
+    pass
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = None
+    url: Optional[str] = Field(None, max_length=500)
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+
+
+class ProjectResponse(ProjectBase):
+    id: UUID
+    profile_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ExperienceBase(BaseModel):
+    title: str = Field(..., max_length=255)
+    company: str = Field(..., max_length=255)
+    location: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    is_current: bool = False
+
+
+class ExperienceCreate(ExperienceBase):
+    @model_validator(mode="after")
+    def validate_dates(self) -> "ExperienceCreate":
+        if self.is_current and self.end_date is not None:
+            raise ValueError("If is_current is true, end_date must be null.")
+
+        if self.start_date and self.end_date:
+            if self.end_date < self.start_date:
+                raise ValueError("end_date must not be earlier than start_date.")
+
+        return self
+
+
+class ExperienceUpdate(BaseModel):
+    title: Optional[str] = Field(None, max_length=255)
+    company: Optional[str] = Field(None, max_length=255)
+    location: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    is_current: Optional[bool] = None
+
+
+class ExperienceResponse(ExperienceBase):
+    id: UUID
+    profile_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ExperienceSkillCreate(BaseModel):
+    profile_skill_id: UUID
+
+
+class ExperienceSkillResponse(BaseModel):
+    id: UUID
+    profile_skill_id: UUID
+    skill_id: Optional[UUID] = None
+    skill_name: str
+    is_custom: bool
+    proficiency: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+def normalize_string_list(v: Optional[list[str]], allowed_values: Optional[list[str]] = None) -> list[str]:
+    if not v:
+        return []
+    seen = set()
+    result = []
+    for item in v:
+        clean = item.strip()
+        if not clean:
+            continue
+        clean_lower = clean.lower()
+        if clean_lower not in seen:
+            seen.add(clean_lower)
+            if allowed_values:
+                match = next((av for av in allowed_values if av.lower() == clean_lower), None)
+                if match:
+                    result.append(match)
+                else:
+                    raise ValueError(f"Invalid value: {clean}. Allowed values: {', '.join(allowed_values)}")
+            else:
+                result.append(clean)
+    return result
+
+
+class CareerPreferenceUpsert(BaseModel):
+    desired_roles: list[str] = Field(default_factory=list, max_length=20)
+    locations: list[str] = Field(default_factory=list, max_length=20)
+    job_type: list[str] = Field(default_factory=list, max_length=10)
+    work_model: list[str] = Field(default_factory=list, max_length=10)
+    preferred_domains: list[str] = Field(default_factory=list, max_length=20)
+    sponsorship_needed: Optional[bool] = None
+
+    @field_validator("desired_roles", "locations", "preferred_domains", mode="before")
+    @classmethod
+    def validate_free_lists(cls, v: Optional[list[str]]) -> list[str]:
+        # Truncate individual strings to 100 chars
+        normalized = normalize_string_list(v)
+        return [item[:100] for item in normalized]
+
+    @field_validator("job_type", mode="before")
+    @classmethod
+    def validate_job_type(cls, v: Optional[list[str]]) -> list[str]:
+        return normalize_string_list(v, ["Internship", "Full-Time", "Part-Time", "Contract"])
+
+    @field_validator("work_model", mode="before")
+    @classmethod
+    def validate_work_model(cls, v: Optional[list[str]]) -> list[str]:
+        return normalize_string_list(v, ["Remote", "Hybrid", "On-site"])
+
+
+class CareerPreferenceResponse(BaseModel):
+    id: UUID
+    profile_id: UUID
+    desired_roles: Optional[list[str]]
+    locations: Optional[list[str]]
+    job_type: Optional[list[str]]
+    work_model: Optional[list[str]]
+    preferred_domains: Optional[list[str]]
+    sponsorship_needed: Optional[bool]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

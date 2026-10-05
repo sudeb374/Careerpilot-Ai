@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { EducationSection } from "@/components/profile/education-section";
+import { SkillsSection } from "@/components/profile/skills-section";
+import { ProjectsSection } from "@/components/profile/projects-section";
+import { ExperienceSection } from "@/components/profile/experience-section";
+import { CareerPreferencesSection } from "@/components/profile/career-preferences-section";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -36,12 +40,15 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <ProfileForm />
           
-          <EducationSection />
+          <CareerPreferencesSection />
 
-          {/* Placeholders for future sections */}
-          <div className="rounded-xl border border-border border-dashed bg-card/50 p-8 text-center text-muted-foreground">
-            <p>Experience and Skills sections coming soon.</p>
-          </div>
+          <EducationSection />
+          
+          <SkillsSection />
+
+          <ProjectsSection />
+
+          <ExperienceSection />
         </div>
       </div>
     </div>

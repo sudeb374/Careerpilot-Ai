@@ -1,0 +1,75 @@
+{
+  "A_Initial_GET": 200,
+  "B_PUT_valid": 200,
+  "C_GET_after_PUT": {
+    "status": 200,
+    "data": {
+      "id": "c610a723-046c-46b1-86b5-fbc260383752",
+      "profile_id": "e3ebb6b1-a483-430b-a218-6dcf9377d9cb",
+      "desired_roles": [
+        "Data Scientist",
+        "ML Engineer"
+      ],
+      "locations": [
+        "Kolkata",
+        "Bengaluru"
+      ],
+      "job_type": [
+        "Internship",
+        "Full-Time"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "preferred_domains": [
+        "Artificial Intelligence",
+        "FinTech"
+      ],
+      "sponsorship_needed": null,
+      "created_at": "2026-10-05T17:31:24.618246Z",
+      "updated_at": "2026-10-05T17:46:47.804948Z"
+    }
+  },
+  "D_PUT_duplicates": {
+    "status": 200,
+    "data": {
+      "id": "c610a723-046c-46b1-86b5-fbc260383752",
+      "profile_id": "e3ebb6b1-a483-430b-a218-6dcf9377d9cb",
+      "desired_roles": [
+        "Data Scientist"
+      ],
+      "locations": [
+        "Kolkata"
+      ],
+      "job_type": [],
+      "work_model": [],
+      "preferred_domains": [],
+      "sponsorship_needed": null,
+      "created_at": "2026-10-05T17:31:24.618246Z",
+      "updated_at": "2026-10-05T17:46:50.052334Z"
+    }
+  },
+  "E_PUT_invalid_job_type": 422,
+  "F_PUT_invalid_work_model": 422,
+  "G_Final_GET": {
+    "status": 200,
+    "data": {
+      "id": "c610a723-046c-46b1-86b5-fbc260383752",
+      "profile_id": "e3ebb6b1-a483-430b-a218-6dcf9377d9cb",
+      "desired_roles": [
+        "Data Scientist"
+      ],
+      "locations": [
+        "Kolkata"
+      ],
+      "job_type": [],
+      "work_model": [],
+      "preferred_domains": [],
+      "sponsorship_needed": null,
+      "created_at": "2026-10-05T17:31:24.618246Z",
+      "updated_at": "2026-10-05T17:46:50.052334Z"
+    }
+  },
+  "Cleanup": "Restored original: 200"
+}

@@ -46,13 +46,62 @@ Extended user information stored in the application database.
 | user_id        | UUID        | FK → users.id, UQ   | One profile per user           |
 | full_name      | VARCHAR(255)| NOT NULL            |                                |
 | headline       | VARCHAR(500)|                     | Short bio / tagline            |
-| education      | JSONB       |                     | Array of education entries     |
-| experience     | JSONB       |                     | Array of experience entries    |
 | location       | VARCHAR(255)|                     |                                |
-| university     | VARCHAR(255)|                     |                                |
-| graduation_year| INTEGER     |                     |                                |
 | created_at     | TIMESTAMPTZ | NOT NULL, DEFAULT   |                                |
 | updated_at     | TIMESTAMPTZ | NOT NULL, DEFAULT   |                                |
+
+### 2.2.1 educations
+| Column         | Type        | Constraints             | Notes                          |
+|----------------|-------------|-------------------------|--------------------------------|
+| id             | UUID        | PK, DEFAULT gen         |                                |
+| profile_id     | UUID        | FK → profiles.id        |                                |
+| institution    | VARCHAR(255)| NOT NULL                |                                |
+| degree         | VARCHAR(255)| NOT NULL                |                                |
+| field_of_study | VARCHAR(255)|                         |                                |
+| start_date     | DATE        |                         |                                |
+| end_date       | DATE        |                         |                                |
+| grade          | VARCHAR(50) |                         |                                |
+| created_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+| updated_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+
+### 2.2.2 experiences
+| Column         | Type        | Constraints             | Notes                          |
+|----------------|-------------|-------------------------|--------------------------------|
+| id             | UUID        | PK, DEFAULT gen         |                                |
+| profile_id     | UUID        | FK → profiles.id        |                                |
+| title          | VARCHAR(255)| NOT NULL                |                                |
+| company        | VARCHAR(255)| NOT NULL                |                                |
+| location       | VARCHAR(255)|                         |                                |
+| description    | TEXT        |                         |                                |
+| start_date     | DATE        |                         |                                |
+| end_date       | DATE        |                         |                                |
+| is_current     | BOOLEAN     | DEFAULT false           |                                |
+| created_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+| updated_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+
+### 2.2.3 projects
+| Column         | Type        | Constraints             | Notes                          |
+|----------------|-------------|-------------------------|--------------------------------|
+| id             | UUID        | PK, DEFAULT gen         |                                |
+| profile_id     | UUID        | FK → profiles.id        |                                |
+| name           | VARCHAR(255)| NOT NULL                |                                |
+| description    | TEXT        |                         |                                |
+| url            | VARCHAR(500)|                         |                                |
+| start_date     | DATE        |                         |                                |
+| end_date       | DATE        |                         |                                |
+| created_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+| updated_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+
+### 2.2.4 career_preferences
+| Column         | Type        | Constraints             | Notes                          |
+|----------------|-------------|-------------------------|--------------------------------|
+| id             | UUID        | PK, DEFAULT gen         |                                |
+| profile_id     | UUID        | FK → profiles.id, UQ    | One preference per profile     |
+| desired_roles  | VARCHAR(500)|                         |                                |
+| locations      | VARCHAR(500)|                         |                                |
+| job_type       | VARCHAR(100)|                         | e.g., full-time, internship    |
+| created_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
+| updated_at     | TIMESTAMPTZ | NOT NULL, DEFAULT       |                                |
 
 ### 2.3 opportunities
 Internships and entry-level job listings.
@@ -109,16 +158,25 @@ Resume uploads and AI analysis results.
 | analysis        | JSONB       |                           | Structured feedback      |
 | created_at      | TIMESTAMPTZ | NOT NULL, DEFAULT         |                          |
 
-### 2.6 user_skills
+### 2.6 skills (Global)
+Global list of skills to avoid duplication.
+
+| Column          | Type        | Constraints               | Notes                    |
+|-----------------|-------------|---------------------------|--------------------------|
+| id              | UUID        | PK, DEFAULT gen           |                          |
+| name            | VARCHAR(100)| UNIQUE, NOT NULL          |                          |
+| created_at      | TIMESTAMPTZ | NOT NULL, DEFAULT         |                          |
+
+### 2.7 profile_skills
 Skills associated with a user profile.
 
 | Column          | Type        | Constraints               | Notes                    |
 |-----------------|-------------|---------------------------|--------------------------|
 | id              | UUID        | PK, DEFAULT gen           |                          |
-| user_id         | UUID        | FK → users.id, NOT NULL   |                          |
-| skill_name      | VARCHAR(100)| NOT NULL                  |                          |
+| profile_id      | UUID        | FK → profiles.id, NOT NULL|                          |
+| skill_id        | UUID        | FK → skills.id, NOT NULL  |                          |
 | proficiency     | VARCHAR(50) |                           | beginner / intermediate / advanced |
-| UNIQUE          |             | (user_id, skill_name)     |                          |
+| UNIQUE          |             | (profile_id, skill_id)    |                          |
 
 ## 3. Indexes (Planned)
 
