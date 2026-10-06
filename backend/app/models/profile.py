@@ -2,19 +2,20 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean,
-    CheckConstraint,
     Column,
+    String,
+    Text,
     Date,
     DateTime,
     ForeignKey,
-    Index,
-    String,
-    Text,
+    Boolean,
+    Integer,
     UniqueConstraint,
+    Index,
+    CheckConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -33,9 +34,20 @@ class Profile(Base):
     full_name = Column(String(255), nullable=False)
     headline = Column(String(500), nullable=True)
     location = Column(String(255), nullable=True)
+    about = Column(Text, nullable=True)
+    phone = Column(String(30), nullable=True)
+    linkedin_url = Column(String(500), nullable=True)
+    github_url = Column(String(500), nullable=True)
+    portfolio_url = Column(String(500), nullable=True)
+    profile_picture_path = Column(String(500), nullable=True)
+    role = Column(String(50), nullable=False, server_default="student")
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at = Column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+    )
+
+    __table_args__ = (
+        CheckConstraint("role IN ('student', 'admin')", name="chk_profile_role"),
     )
 
     # Relationships
@@ -56,6 +68,9 @@ class Profile(Base):
     )
     skills = relationship(
         "ProfileSkill", back_populates="profile", cascade="all, delete-orphan"
+    )
+    resumes = relationship(
+        "Resume", back_populates="profile", cascade="all, delete-orphan"
     )
 
 
@@ -279,4 +294,31 @@ class ExperienceSkill(Base):
         UniqueConstraint(
             "experience_id", "profile_skill_id", name="uix_exp_profile_skill"
         ),
+    )
+
+
+class Resume(Base):
+    __tablename__ = "resumes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    profile_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("profiles.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    original_filename = Column(String(255), nullable=False)
+    storage_path = Column(String(500), nullable=False, unique=True)
+    file_type = Column(String(100), nullable=False)
+    file_size = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=False, nullable=False)
+    parsed_text = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+    )
+
+    profile = relationship("Profile", back_populates="resumes")
+
+    __table_args__ = (
+        CheckConstraint("file_size > 0", name="chk_resume_file_size_positive"),
     )

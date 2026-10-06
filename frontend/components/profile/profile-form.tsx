@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+
+import { ProfilePicture } from "./profile-picture";
 
 export function ProfileForm() {
   const [isLoading, setIsLoading] = useState(true);
@@ -14,6 +16,8 @@ export function ProfileForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isNewProfile, setIsNewProfile] = useState(true);
+
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -48,6 +52,7 @@ export function ProfileForm() {
             headline: profile.headline || "",
             location: profile.location || "",
           });
+          setProfilePictureUrl(profile.profile_picture_url || null);
           setIsNewProfile(false);
         } else if (res.status === 404) {
           setIsNewProfile(true);
@@ -132,9 +137,6 @@ export function ProfileForm() {
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Basic Information</CardTitle>
-        <CardDescription>
-          Update your main profile details. This information will be visible to potential connections.
-        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
@@ -149,6 +151,8 @@ export function ProfileForm() {
             </div>
           )}
 
+          <ProfilePicture fullName={formData.full_name} initialPictureUrl={profilePictureUrl} />
+          
           <div className="space-y-2">
             <Label htmlFor="full_name">Full Name <span className="text-destructive">*</span></Label>
             <Input

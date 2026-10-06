@@ -47,3 +47,38 @@ def get_current_user(
         )
 
     return user_id
+
+
+async def get_current_profile(
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Resolves the user's Profile using the verified JWT user_id.
+    """
+    from sqlalchemy import select
+    from app.models.profile import Profile
+
+    stmt = select(Profile).where(Profile.user_id == user_id)
+    result = await db.execute(stmt)
+    profile = result.scalar_one_or_none()
+
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found",
+        )
+    return profile
+
+
+def require_admin(profile=Depends(get_current_profile)):
+    """
+    Ensures the current profile has the 'admin' role.
+    """
+    if profile.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+    return profile
+

@@ -2,6 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
+
+from fastapi import UploadFile, File
+from app.schemas.profile import ResumeResponse, ResumeDownloadResponse, ProfilePictureResponse
+from app.services import resume as resume_service
+from app.services import profile_picture as picture_service
+from app.core.dependencies import get_current_profile
+
 from app.schemas.profile import (
     CareerPreferenceResponse,
     CareerPreferenceUpsert,
@@ -38,7 +45,7 @@ async def get_current_user_profile(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found"
         )
-    return profile
+    return await picture_service.inject_profile_picture_url(profile)
 
 
 @router.post("", response_model=ProfileResponse, status_code=status.HTTP_201_CREATED)
@@ -48,7 +55,8 @@ async def create_current_user_profile(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new profile for the authenticated user."""
-    return await profile_service.create_profile(db, user_id, profile_in)
+    profile = await profile_service.create_profile(db, user_id, profile_in)
+    return await picture_service.inject_profile_picture_url(profile)
 
 
 @router.patch("", response_model=ProfileResponse)
@@ -58,7 +66,8 @@ async def update_current_user_profile(
     db: AsyncSession = Depends(get_db),
 ):
     """Update the authenticated user's profile."""
-    return await profile_service.update_profile(db, user_id, profile_in)
+    profile = await profile_service.update_profile(db, user_id, profile_in)
+    return await picture_service.inject_profile_picture_url(profile)
 
 
 @router.get("/education", response_model=list[EducationResponse])
@@ -321,3 +330,94 @@ async def upsert_career_preferences(
         db, str(profile.id), prefs_in
     )
     return prefs
+
+
+# ==========================================
+# Resumes
+# ==========================================
+
+
+@router.get("/resumes", response_model=list[ResumeResponse])
+async def list_resumes(
+    profile=Depends(get_current_profile), db: AsyncSession = Depends(get_db)
+):
+    """Get all resumes for the authenticated user."""
+    return await resume_service.list_resumes(db, profile.id)
+
+
+@router.post(
+    "/resumes", response_model=ResumeResponse, status_code=status.HTTP_201_CREATED
+)
+async def upload_resume(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user),
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload a new resume for the authenticated user."""
+    return await resume_service.upload_resume(db, user_id, profile, file)
+
+
+@router.patch("/resumes/{resume_id}/activate", response_model=ResumeResponse)
+async def activate_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Set a specific resume as the active resume."""
+    return await resume_service.activate_resume(db, profile.id, resume_id)
+
+
+@router.get("/resumes/{resume_id}/download", response_model=ResumeDownloadResponse)
+async def download_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get a signed URL to download the resume."""
+    return await resume_service.create_download_url(db, profile.id, resume_id)
+
+
+@router.delete("/resumes/{resume_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a resume."""
+    await resume_service.delete_resume(db, profile.id, resume_id)
+
+# ==========================================
+# Profile Picture Endpoints
+# ==========================================
+
+@router.post("/picture", response_model=ProfileResponse)
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user),
+    profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload or replace profile picture."""
+    await picture_service.upload_profile_picture(db, str(profile.id), user_id, file)
+    # Refresh and return profile
+    await db.refresh(profile)
+    return await picture_service.inject_profile_picture_url(profile)
+
+@router.get("/picture", response_model=ProfilePictureResponse)
+async def get_profile_picture(
+    profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get signed URL for profile picture."""
+    url = await picture_service.get_profile_picture_url(db, str(profile.id))
+    return {"signed_url": url}
+
+@router.delete("/picture", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_profile_picture(
+    profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete profile picture."""
+    await picture_service.delete_profile_picture(db, str(profile.id))
+    return None

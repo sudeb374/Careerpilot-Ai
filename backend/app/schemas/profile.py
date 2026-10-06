@@ -2,13 +2,43 @@ from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+    HttpUrl,
+)
 
 
 class ProfileBase(BaseModel):
     full_name: str = Field(..., max_length=255)
     headline: Optional[str] = Field(None, max_length=500)
     location: Optional[str] = Field(None, max_length=255)
+    about: Optional[str] = Field(None, max_length=2000)
+    phone: Optional[str] = Field(None, max_length=30)
+    linkedin_url: Optional[str] = Field(None, max_length=500)
+    github_url: Optional[str] = Field(None, max_length=500)
+    portfolio_url: Optional[str] = Field(None, max_length=500)
+
+    @field_validator("about", "phone", mode="before")
+    @classmethod
+    def strip_whitespace(cls, v: Optional[str]) -> Optional[str]:
+        if isinstance(v, str):
+            return v.strip() or None
+        return v
+
+    @field_validator("linkedin_url", "github_url", "portfolio_url", mode="before")
+    @classmethod
+    def validate_and_format_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        # Validates and normalizes URL
+        return str(HttpUrl(v))
 
 
 class ProfileCreate(ProfileBase):
@@ -19,11 +49,37 @@ class ProfileUpdate(BaseModel):
     full_name: Optional[str] = Field(None, max_length=255)
     headline: Optional[str] = Field(None, max_length=500)
     location: Optional[str] = Field(None, max_length=255)
+    about: Optional[str] = Field(None, max_length=2000)
+    phone: Optional[str] = Field(None, max_length=30)
+    linkedin_url: Optional[str] = Field(None, max_length=500)
+    github_url: Optional[str] = Field(None, max_length=500)
+    portfolio_url: Optional[str] = Field(None, max_length=500)
+
+    @field_validator("about", "phone", mode="before")
+    @classmethod
+    def strip_whitespace(cls, v: Optional[str]) -> Optional[str]:
+        if isinstance(v, str):
+            return v.strip() or None
+        return v
+
+    @field_validator("linkedin_url", "github_url", "portfolio_url", mode="before")
+    @classmethod
+    def validate_and_format_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        # Validates and normalizes URL
+        return str(HttpUrl(v))
 
 
 class ProfileResponse(ProfileBase):
     id: UUID
     user_id: UUID
+    role: str
+    profile_picture_path: Optional[str] = None
+    profile_picture_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -203,7 +259,9 @@ class ExperienceSkillResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-def normalize_string_list(v: Optional[list[str]], allowed_values: Optional[list[str]] = None) -> list[str]:
+def normalize_string_list(
+    v: Optional[list[str]], allowed_values: Optional[list[str]] = None
+) -> list[str]:
     if not v:
         return []
     seen = set()
@@ -216,11 +274,15 @@ def normalize_string_list(v: Optional[list[str]], allowed_values: Optional[list[
         if clean_lower not in seen:
             seen.add(clean_lower)
             if allowed_values:
-                match = next((av for av in allowed_values if av.lower() == clean_lower), None)
+                match = next(
+                    (av for av in allowed_values if av.lower() == clean_lower), None
+                )
                 if match:
                     result.append(match)
                 else:
-                    raise ValueError(f"Invalid value: {clean}. Allowed values: {', '.join(allowed_values)}")
+                    raise ValueError(
+                        f"Invalid value: {clean}. Allowed values: {', '.join(allowed_values)}"
+                    )
             else:
                 result.append(clean)
     return result
@@ -244,7 +306,9 @@ class CareerPreferenceUpsert(BaseModel):
     @field_validator("job_type", mode="before")
     @classmethod
     def validate_job_type(cls, v: Optional[list[str]]) -> list[str]:
-        return normalize_string_list(v, ["Internship", "Full-Time", "Part-Time", "Contract"])
+        return normalize_string_list(
+            v, ["Internship", "Full-Time", "Part-Time", "Contract"]
+        )
 
     @field_validator("work_model", mode="before")
     @classmethod
@@ -264,4 +328,33 @@ class CareerPreferenceResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
+# ==========================================
+# Resume
+# ==========================================
+
+
+class ResumeResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    profile_id: UUID
+    original_filename: str
+    file_type: str
+    file_size: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ResumeDownloadResponse(BaseModel):
+    signed_url: str
+    original_filename: str
+    file_type: str
+
+# ==========================================
+# Profile Picture
+# ==========================================
+
+class ProfilePictureResponse(BaseModel):
+    signed_url: str

@@ -7,6 +7,7 @@ from app.models.profile import (
     Profile,
     ProfileSkill,
     Project,
+    Resume,
     Skill,
 )
 
@@ -18,5 +19,6 @@ __all__ = [
     "Profile",
     "ProfileSkill",
     "Project",
+    "Resume",
     "Skill",
 ]

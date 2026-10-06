@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_key: str = ""
     supabase_jwt_secret: str = ""
-    supabase_service_role_key: str = ""
+    supabase_secret_key: str = ""
 
     # Gemini API
     gemini_api_key: str = ""
