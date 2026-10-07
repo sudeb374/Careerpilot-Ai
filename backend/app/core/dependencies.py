@@ -57,6 +57,7 @@ async def get_current_profile(
     Resolves the user's Profile using the verified JWT user_id.
     """
     from sqlalchemy import select
+
     from app.models.profile import Profile
 
     stmt = select(Profile).where(Profile.user_id == user_id)

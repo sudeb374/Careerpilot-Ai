@@ -1,10 +1,11 @@
 import uuid
+
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.profile import Profile
-from app.services.storage import upload_file, delete_file, create_signed_url
+from app.services.storage import create_signed_url, delete_file, upload_file
 
 BUCKET_NAME = "profile-pictures"
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB

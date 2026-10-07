@@ -1,12 +1,13 @@
-from pydantic import BaseModel, field_validator, HttpUrl
-from typing import Optional
+
+from pydantic import BaseModel, HttpUrl, field_validator
+
 
 class M(BaseModel):
-    url: Optional[str] = None
+    url: str | None = None
 
     @field_validator("url")
     @classmethod
-    def validate_url(cls, v: Optional[str]) -> Optional[str]:
+    def validate_url(cls, v: str | None) -> str | None:
         if not v:
             return v
         # this will raise validation error if invalid

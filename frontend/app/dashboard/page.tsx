@@ -21,8 +21,18 @@ export default function DashboardPage() {
           </p>
           
           <div className="flex flex-col gap-3">
+            <Link href="/opportunities" className="w-full">
+              <Button className="w-full bg-[#1B5E3B] text-white hover:bg-[#2E7D4F]">
+                Discover Opportunities
+              </Button>
+            </Link>
+            <Link href="/saved-opportunities" className="w-full">
+              <Button className="w-full bg-white text-[#1B5E3B] border border-[#1B5E3B] hover:bg-[#F6FAF7]">
+                Saved Opportunities
+              </Button>
+            </Link>
             <Link href="/profile" className="w-full">
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="w-full" variant="outline">
                 Manage Profile
               </Button>
             </Link>

@@ -1,5 +1,6 @@
 import httpx
 from fastapi import HTTPException, status
+
 from app.core.config import settings
 
 STORAGE_URL = f"{settings.supabase_url.rstrip('/')}/storage/v1"

@@ -1,12 +1,11 @@
 import uuid
-from typing import List
 
-from fastapi import HTTPException, status, UploadFile
+from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.profile import Resume, Profile
-from app.services.storage import upload_file, delete_file, create_signed_url
+from app.models.profile import Profile, Resume
+from app.services.storage import create_signed_url, delete_file, upload_file
 
 ALLOWED_MIME_TYPES = {
     "application/pdf": b"%PDF",
@@ -50,7 +49,7 @@ async def get_resume_by_id(db: AsyncSession, profile_id: uuid.UUID, resume_id: s
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found")
     return resume
 
-async def list_resumes(db: AsyncSession, profile_id: uuid.UUID) -> List[Resume]:
+async def list_resumes(db: AsyncSession, profile_id: uuid.UUID) -> list[Resume]:
     result = await db.execute(
         select(Resume).where(Resume.profile_id == profile_id).order_by(Resume.created_at.desc())
     )

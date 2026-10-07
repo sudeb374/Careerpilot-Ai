@@ -1,14 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from app.core.dependencies import get_current_user, get_db
-
-from fastapi import UploadFile, File
-from app.schemas.profile import ResumeResponse, ResumeDownloadResponse, ProfilePictureResponse
-from app.services import resume as resume_service
-from app.services import profile_picture as picture_service
-from app.core.dependencies import get_current_profile
-
+from app.core.dependencies import get_current_profile, get_current_user, get_db
+from app.models.opportunity import Opportunity, OpportunitySkill, SavedOpportunity
+from app.schemas.opportunity import PaginatedSavedOpportunityResponse
 from app.schemas.profile import (
     CareerPreferenceResponse,
     CareerPreferenceUpsert,
@@ -21,6 +18,7 @@ from app.schemas.profile import (
     ExperienceSkillResponse,
     ExperienceUpdate,
     ProfileCreate,
+    ProfilePictureResponse,
     ProfileResponse,
     ProfileSkillCreate,
     ProfileSkillResponse,
@@ -29,8 +27,12 @@ from app.schemas.profile import (
     ProjectCreate,
     ProjectResponse,
     ProjectUpdate,
+    ResumeDownloadResponse,
+    ResumeResponse,
 )
 from app.services import profile as profile_service
+from app.services import profile_picture as picture_service
+from app.services import resume as resume_service
 
 router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
 
@@ -420,4 +422,64 @@ async def delete_profile_picture(
 ):
     """Delete profile picture."""
     await picture_service.delete_profile_picture(db, str(profile.id))
-    return None
+
+
+@router.get("/saved-opportunities", response_model=PaginatedSavedOpportunityResponse)
+async def get_saved_opportunities(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_profile),
+):
+    """
+    Get saved opportunities for the current user.
+    """
+    import math
+    stmt = select(SavedOpportunity).where(
+        SavedOpportunity.profile_id == current_user.id
+    )
+    
+    # Count total
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    total_result = await db.execute(count_stmt)
+    total = total_result.scalar() or 0
+
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
+
+    # Order and paginate
+    stmt = stmt.order_by(SavedOpportunity.created_at.desc())
+    stmt = stmt.options(
+        selectinload(SavedOpportunity.opportunity).selectinload(Opportunity.skills).joinedload(OpportunitySkill.skill)
+    )
+    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+    
+    result = await db.execute(stmt)
+    saved_opps = result.scalars().all()
+
+    items = []
+    for saved in saved_opps:
+        opp = saved.opportunity
+        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+        items.append({
+            "id": opp.id,
+            "title": opp.title,
+            "company_name": opp.company_name,
+            "company_logo_url": opp.company_logo_url,
+            "opportunity_type": opp.opportunity_type,
+            "work_model": opp.work_model,
+            "locations": opp.locations,
+            "domain": opp.domain,
+            "deadline": opp.deadline,
+            "status": opp.status,
+            "created_at": opp.created_at,
+            "skills": skills_resp,
+            "saved_at": saved.created_at
+        })
+        
+    return {
+        "items": items,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages
+    }

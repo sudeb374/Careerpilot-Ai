@@ -1,18 +1,18 @@
 import asyncio
-import sys
-from uuid import uuid4
 
 # Add backend dir to sys.path if not there
 import os
+import sys
+from uuid import uuid4
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
-from app.main import app
-from app.core.dependencies import get_current_user
-from app.models.profile import Profile
 from app.core.database import async_session_factory
+from app.core.dependencies import get_current_user
+from app.main import app
+from app.models.profile import Profile
 
 # We'll need a real test user ID
 TEST_USER_ID = str(uuid4())

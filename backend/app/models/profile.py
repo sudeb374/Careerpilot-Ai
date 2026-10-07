@@ -2,20 +2,20 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
     Column,
-    String,
-    Text,
     Date,
     DateTime,
     ForeignKey,
-    Boolean,
-    Integer,
-    UniqueConstraint,
     Index,
-    CheckConstraint,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base

@@ -1,37 +1,36 @@
 from datetime import date, datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    HttpUrl,
     field_validator,
     model_validator,
-    HttpUrl,
 )
 
 
 class ProfileBase(BaseModel):
     full_name: str = Field(..., max_length=255)
-    headline: Optional[str] = Field(None, max_length=500)
-    location: Optional[str] = Field(None, max_length=255)
-    about: Optional[str] = Field(None, max_length=2000)
-    phone: Optional[str] = Field(None, max_length=30)
-    linkedin_url: Optional[str] = Field(None, max_length=500)
-    github_url: Optional[str] = Field(None, max_length=500)
-    portfolio_url: Optional[str] = Field(None, max_length=500)
+    headline: str | None = Field(None, max_length=500)
+    location: str | None = Field(None, max_length=255)
+    about: str | None = Field(None, max_length=2000)
+    phone: str | None = Field(None, max_length=30)
+    linkedin_url: str | None = Field(None, max_length=500)
+    github_url: str | None = Field(None, max_length=500)
+    portfolio_url: str | None = Field(None, max_length=500)
 
     @field_validator("about", "phone", mode="before")
     @classmethod
-    def strip_whitespace(cls, v: Optional[str]) -> Optional[str]:
+    def strip_whitespace(cls, v: str | None) -> str | None:
         if isinstance(v, str):
             return v.strip() or None
         return v
 
     @field_validator("linkedin_url", "github_url", "portfolio_url", mode="before")
     @classmethod
-    def validate_and_format_url(cls, v: Optional[str]) -> Optional[str]:
+    def validate_and_format_url(cls, v: str | None) -> str | None:
         if not v:
             return None
         v = v.strip()
@@ -46,25 +45,25 @@ class ProfileCreate(ProfileBase):
 
 
 class ProfileUpdate(BaseModel):
-    full_name: Optional[str] = Field(None, max_length=255)
-    headline: Optional[str] = Field(None, max_length=500)
-    location: Optional[str] = Field(None, max_length=255)
-    about: Optional[str] = Field(None, max_length=2000)
-    phone: Optional[str] = Field(None, max_length=30)
-    linkedin_url: Optional[str] = Field(None, max_length=500)
-    github_url: Optional[str] = Field(None, max_length=500)
-    portfolio_url: Optional[str] = Field(None, max_length=500)
+    full_name: str | None = Field(None, max_length=255)
+    headline: str | None = Field(None, max_length=500)
+    location: str | None = Field(None, max_length=255)
+    about: str | None = Field(None, max_length=2000)
+    phone: str | None = Field(None, max_length=30)
+    linkedin_url: str | None = Field(None, max_length=500)
+    github_url: str | None = Field(None, max_length=500)
+    portfolio_url: str | None = Field(None, max_length=500)
 
     @field_validator("about", "phone", mode="before")
     @classmethod
-    def strip_whitespace(cls, v: Optional[str]) -> Optional[str]:
+    def strip_whitespace(cls, v: str | None) -> str | None:
         if isinstance(v, str):
             return v.strip() or None
         return v
 
     @field_validator("linkedin_url", "github_url", "portfolio_url", mode="before")
     @classmethod
-    def validate_and_format_url(cls, v: Optional[str]) -> Optional[str]:
+    def validate_and_format_url(cls, v: str | None) -> str | None:
         if not v:
             return None
         v = v.strip()
@@ -78,8 +77,8 @@ class ProfileResponse(ProfileBase):
     id: UUID
     user_id: UUID
     role: str
-    profile_picture_path: Optional[str] = None
-    profile_picture_url: Optional[str] = None
+    profile_picture_path: str | None = None
+    profile_picture_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -89,11 +88,11 @@ class ProfileResponse(ProfileBase):
 class EducationBase(BaseModel):
     institution: str = Field(..., max_length=255)
     degree: str = Field(..., max_length=255)
-    field_of_study: Optional[str] = Field(None, max_length=255)
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    currently_studying: Optional[bool] = False
-    grade: Optional[str] = Field(None, max_length=50)
+    field_of_study: str | None = Field(None, max_length=255)
+    start_date: date | None = None
+    end_date: date | None = None
+    currently_studying: bool | None = False
+    grade: str | None = Field(None, max_length=50)
 
 
 class EducationCreate(EducationBase):
@@ -101,13 +100,13 @@ class EducationCreate(EducationBase):
 
 
 class EducationUpdate(BaseModel):
-    institution: Optional[str] = Field(None, max_length=255)
-    degree: Optional[str] = Field(None, max_length=255)
-    field_of_study: Optional[str] = Field(None, max_length=255)
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    currently_studying: Optional[bool] = None
-    grade: Optional[str] = Field(None, max_length=50)
+    institution: str | None = Field(None, max_length=255)
+    degree: str | None = Field(None, max_length=255)
+    field_of_study: str | None = Field(None, max_length=255)
+    start_date: date | None = None
+    end_date: date | None = None
+    currently_studying: bool | None = None
+    grade: str | None = Field(None, max_length=50)
 
 
 class EducationResponse(EducationBase):
@@ -123,7 +122,7 @@ class SkillCategoryResponse(BaseModel):
     id: UUID
     name: str
     slug: str
-    description: Optional[str] = None
+    description: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -132,7 +131,7 @@ class SkillResponse(BaseModel):
     id: UUID
     name: str
     category: SkillCategoryResponse | None = None
-    description: Optional[str] = None
+    description: str | None = None
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
@@ -141,7 +140,7 @@ class SkillResponse(BaseModel):
 class SkillSearchResponse(BaseModel):
     id: UUID
     name: str
-    category: Optional[str] = None
+    category: str | None = None
     matched_by: str  # "name" or "alias"
 
     model_config = ConfigDict(from_attributes=True)
@@ -149,7 +148,7 @@ class SkillSearchResponse(BaseModel):
 
 class ProfileSkillBase(BaseModel):
     skill_name: str = Field(..., max_length=100)
-    proficiency: Optional[str] = Field(None, max_length=50)
+    proficiency: str | None = Field(None, max_length=50)
 
 
 class ProfileSkillCreate(ProfileSkillBase):
@@ -157,16 +156,16 @@ class ProfileSkillCreate(ProfileSkillBase):
 
 
 class ProfileSkillUpdate(BaseModel):
-    proficiency: Optional[str] = Field(None, max_length=50)
+    proficiency: str | None = Field(None, max_length=50)
 
 
 class ProfileSkillResponse(BaseModel):
     id: UUID
     profile_id: UUID
-    skill_id: Optional[UUID] = None
-    custom_skill_name: Optional[str] = None
+    skill_id: UUID | None = None
+    custom_skill_name: str | None = None
     skill_name: str
-    proficiency: Optional[str] = None
+    proficiency: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -174,10 +173,10 @@ class ProfileSkillResponse(BaseModel):
 
 class ProjectBase(BaseModel):
     name: str = Field(..., max_length=255)
-    description: Optional[str] = None
-    url: Optional[str] = Field(None, max_length=500)
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    description: str | None = None
+    url: str | None = Field(None, max_length=500)
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 class ProjectCreate(ProjectBase):
@@ -185,11 +184,11 @@ class ProjectCreate(ProjectBase):
 
 
 class ProjectUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    url: Optional[str] = Field(None, max_length=500)
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    name: str | None = Field(None, max_length=255)
+    description: str | None = None
+    url: str | None = Field(None, max_length=500)
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 class ProjectResponse(ProjectBase):
@@ -204,10 +203,10 @@ class ProjectResponse(ProjectBase):
 class ExperienceBase(BaseModel):
     title: str = Field(..., max_length=255)
     company: str = Field(..., max_length=255)
-    location: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    location: str | None = Field(None, max_length=255)
+    description: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
     is_current: bool = False
 
 
@@ -225,13 +224,13 @@ class ExperienceCreate(ExperienceBase):
 
 
 class ExperienceUpdate(BaseModel):
-    title: Optional[str] = Field(None, max_length=255)
-    company: Optional[str] = Field(None, max_length=255)
-    location: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    is_current: Optional[bool] = None
+    title: str | None = Field(None, max_length=255)
+    company: str | None = Field(None, max_length=255)
+    location: str | None = Field(None, max_length=255)
+    description: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    is_current: bool | None = None
 
 
 class ExperienceResponse(ExperienceBase):
@@ -250,17 +249,17 @@ class ExperienceSkillCreate(BaseModel):
 class ExperienceSkillResponse(BaseModel):
     id: UUID
     profile_skill_id: UUID
-    skill_id: Optional[UUID] = None
+    skill_id: UUID | None = None
     skill_name: str
     is_custom: bool
-    proficiency: Optional[str] = None
+    proficiency: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
 def normalize_string_list(
-    v: Optional[list[str]], allowed_values: Optional[list[str]] = None
+    v: list[str] | None, allowed_values: list[str] | None = None
 ) -> list[str]:
     if not v:
         return []
@@ -294,37 +293,37 @@ class CareerPreferenceUpsert(BaseModel):
     job_type: list[str] = Field(default_factory=list, max_length=10)
     work_model: list[str] = Field(default_factory=list, max_length=10)
     preferred_domains: list[str] = Field(default_factory=list, max_length=20)
-    sponsorship_needed: Optional[bool] = None
+    sponsorship_needed: bool | None = None
 
     @field_validator("desired_roles", "locations", "preferred_domains", mode="before")
     @classmethod
-    def validate_free_lists(cls, v: Optional[list[str]]) -> list[str]:
+    def validate_free_lists(cls, v: list[str] | None) -> list[str]:
         # Truncate individual strings to 100 chars
         normalized = normalize_string_list(v)
         return [item[:100] for item in normalized]
 
     @field_validator("job_type", mode="before")
     @classmethod
-    def validate_job_type(cls, v: Optional[list[str]]) -> list[str]:
+    def validate_job_type(cls, v: list[str] | None) -> list[str]:
         return normalize_string_list(
             v, ["Internship", "Full-Time", "Part-Time", "Contract"]
         )
 
     @field_validator("work_model", mode="before")
     @classmethod
-    def validate_work_model(cls, v: Optional[list[str]]) -> list[str]:
+    def validate_work_model(cls, v: list[str] | None) -> list[str]:
         return normalize_string_list(v, ["Remote", "Hybrid", "On-site"])
 
 
 class CareerPreferenceResponse(BaseModel):
     id: UUID
     profile_id: UUID
-    desired_roles: Optional[list[str]]
-    locations: Optional[list[str]]
-    job_type: Optional[list[str]]
-    work_model: Optional[list[str]]
-    preferred_domains: Optional[list[str]]
-    sponsorship_needed: Optional[bool]
+    desired_roles: list[str] | None
+    locations: list[str] | None
+    job_type: list[str] | None
+    work_model: list[str] | None
+    preferred_domains: list[str] | None
+    sponsorship_needed: bool | None
     created_at: datetime
     updated_at: datetime
 

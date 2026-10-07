@@ -1,7 +1,10 @@
 import asyncio
+
 import httpx
+
 from app.core.config import settings
 from app.services.storage import get_storage_headers
+
 
 async def create_bucket():
     headers = get_storage_headers()
