@@ -15,7 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -312,6 +312,8 @@ class Resume(Base):
     file_size = Column(Integer, nullable=False)
     is_active = Column(Boolean, default=False, nullable=False)
     parsed_text = Column(Text, nullable=True)
+    structured_data = Column(JSONB, nullable=True)
+    analysis_data = Column(JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at = Column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
@@ -322,3 +324,15 @@ class Resume(Base):
     __table_args__ = (
         CheckConstraint("file_size > 0", name="chk_resume_file_size_positive"),
     )
+
+    @property
+    def has_parsed_text(self) -> bool:
+        return self.parsed_text is not None
+
+    @property
+    def has_structured_data(self) -> bool:
+        return self.structured_data is not None
+
+    @property
+    def has_analysis(self) -> bool:
+        return self.analysis_data is not None

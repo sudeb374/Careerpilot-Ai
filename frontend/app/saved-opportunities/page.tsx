@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 
-export default function SavedOpportunitiesPage() {
+import { Suspense } from "react";
+
+function SavedOpportunitiesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -204,5 +206,13 @@ export default function SavedOpportunitiesPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function SavedOpportunitiesPage() {
+  return (
+    <Suspense fallback={<div className="flex h-32 items-center justify-center">Loading...</div>}>
+      <SavedOpportunitiesContent />
+    </Suspense>
   );
 }

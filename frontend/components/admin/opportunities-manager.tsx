@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Loader2, Eye, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Search, Loader2, Eye, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
 import { OpportunityFormDialog } from "./opportunity-form-dialog";
 import { OpportunityDeleteDialog } from "./opportunity-delete-dialog";
 import { OpportunityViewDialog } from "./opportunity-view-dialog";
@@ -138,6 +138,40 @@ export function OpportunitiesManager() {
     }
   };
 
+  const getQualityWarnings = (opp: OpportunityData) => {
+    const warnings = [];
+    if (!opp.application_url) warnings.push("Missing application URL");
+    if (!opp.description) warnings.push("Missing description");
+    if (!opp.skills || opp.skills.length === 0) warnings.push("Missing required skills");
+    if (!opp.deadline) warnings.push("Missing deadline");
+    if (!opp.company_website && !opp.company_logo_url) warnings.push("Incomplete company information");
+    return warnings;
+  };
+
+  const renderDeadline = (deadline: string | null | undefined, status: string) => {
+    if (!deadline) return <span className="text-muted-foreground italic">No deadline</span>;
+    
+    const d = new Date(deadline);
+    const isPast = d < new Date();
+    const formatted = d.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  
+    if (isPast && status !== "Expired" && status !== "Closed") {
+      return (
+        <span className="text-amber-600 flex items-center gap-1 font-medium" title="Deadline has passed">
+          {formatted} <AlertTriangle className="h-3 w-3" />
+        </span>
+      );
+    }
+    
+    return formatted;
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters and Actions */}
@@ -220,7 +254,7 @@ export function OpportunitiesManager() {
                 <th className="px-4 py-3 font-medium">Type</th>
                 <th className="px-4 py-3 font-medium">Model</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Created</th>
+                <th className="px-4 py-3 font-medium">Deadline</th>
                 <th className="px-4 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -241,7 +275,16 @@ export function OpportunitiesManager() {
               ) : (
                 opportunities.map((opp) => (
                   <tr key={opp.id} className="hover:bg-muted/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-foreground">{opp.title}</td>
+                    <td className="px-4 py-3 font-medium text-foreground">
+                      <div className="flex items-center gap-2">
+                        {opp.title}
+                        {getQualityWarnings(opp).length > 0 && (
+                          <div title={getQualityWarnings(opp).join("\n")} className="text-amber-500 cursor-help">
+                            <AlertTriangle className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {opp.company_logo_url && (
@@ -258,8 +301,8 @@ export function OpportunitiesManager() {
                         {opp.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(opp.created_at).toLocaleDateString()}
+                    <td className="px-4 py-3 text-sm">
+                      {renderDeadline(opp.deadline, opp.status)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">

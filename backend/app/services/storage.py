@@ -60,3 +60,23 @@ async def create_signed_url(bucket_name: str, path: str, expires_in: int = 300) 
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to generate signed URL: {response.text}"
             )
+
+async def download_file(bucket_name: str, path: str) -> bytes:
+    """Download a file from a bucket securely using the backend service key."""
+    headers = get_storage_headers()
+    url = f"{STORAGE_URL}/object/{bucket_name}/{path}"
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.content
+        elif response.status_code == 404:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found in storage"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to download file from storage"
+            )

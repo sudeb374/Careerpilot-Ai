@@ -185,6 +185,13 @@ export function OpportunityFormDialog({ open, onOpenChange, opportunityToEdit, o
       payload.deadline = payload.deadline ? new Date(payload.deadline).toISOString() : null;
       payload.required_skill_ids = selectedSkills.map(s => s.id);
 
+      if (payload.status === "Published" && payload.deadline) {
+        const deadlineDate = new Date(payload.deadline);
+        if (deadlineDate < new Date()) {
+          throw new Error("Cannot publish an opportunity with a past deadline. Please set a future deadline or change status to Draft.");
+        }
+      }
+
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -207,6 +214,9 @@ export function OpportunityFormDialog({ open, onOpenChange, opportunityToEdit, o
         const errData = await res.json().catch(() => ({}));
         if (res.status === 409) {
           throw new Error("An opportunity with this Source and External ID already exists.");
+        }
+        if (res.status === 422 && errData.detail && typeof errData.detail === 'string' && errData.detail.toLowerCase().includes('deadline')) {
+          throw new Error("Cannot publish an opportunity with a past deadline. Please set a future deadline or save as a different status.");
         }
         if (errData.detail) {
           throw new Error(typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail));

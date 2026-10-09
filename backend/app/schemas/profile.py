@@ -342,14 +342,92 @@ class ResumeResponse(BaseModel):
     file_type: str
     file_size: int
     is_active: bool
+    has_parsed_text: bool = False
+    has_structured_data: bool = False
+    has_analysis: bool = False
     created_at: datetime
     updated_at: datetime
-
 
 class ResumeDownloadResponse(BaseModel):
     signed_url: str
     original_filename: str
     file_type: str
+
+
+class ResumeParseResponse(BaseModel):
+    id: UUID
+    status: str
+    character_count: int
+    extracted_text: str | None
+    message: str | None = None
+
+class ResumeContact(BaseModel):
+    emails: list[str] = []
+    phones: list[str] = []
+    linkedin_urls: list[str] = []
+    github_urls: list[str] = []
+    portfolio_urls: list[str] = []
+
+class ResumeSkillInfo(BaseModel):
+    skill_id: UUID
+    name: str
+    evidence: str
+
+class ResumeSections(BaseModel):
+    summary: str | None = None
+    skills: str | None = None
+    education: str | None = None
+    experience: str | None = None
+    projects: str | None = None
+    certifications: str | None = None
+    achievements: str | None = None
+    publications: str | None = None
+
+class ResumeStructuredData(BaseModel):
+    schema_version: int = 1
+    contact: ResumeContact
+    skills: list[ResumeSkillInfo]
+    sections: ResumeSections
+    warnings: list[str] = []
+
+class ResumeStructureResponse(BaseModel):
+    id: UUID
+    status: str
+    structured_data: ResumeStructuredData | None = None
+    message: str | None = None
+
+class ResumeFinding(BaseModel):
+    identifier: str
+    category: str
+    severity: str
+    title: str
+    explanation: str
+    recommendation: str
+    evidence: str | None = None
+
+class ResumeCategoryScores(BaseModel):
+    contact: int
+    summary: int
+    education: int
+    skills: int
+    experience_projects: int
+    organization: int
+
+class ResumeAnalysisData(BaseModel):
+    schema_version: int = 1
+    analysis_generated_at: datetime
+    completeness_score: int
+    score_label: str
+    category_scores: ResumeCategoryScores
+    findings: list[ResumeFinding]
+    strengths: list[ResumeFinding]
+    limitations: list[str] = []
+
+class ResumeAnalysisResponse(BaseModel):
+    id: UUID
+    status: str
+    analysis: ResumeAnalysisData | None = None
+    message: str | None = None
 
 # ==========================================
 # Profile Picture

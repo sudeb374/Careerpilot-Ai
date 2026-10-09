@@ -6,11 +6,12 @@ export const metadata: Metadata = {
   description: "View opportunity details",
 };
 
-export default function OpportunityDetailsPage({ params }: { params: { opportunity_id: string } }) {
+export default async function OpportunityDetailsPage({ params }: { params: Promise<{ opportunity_id: string }> }) {
+  const resolvedParams = await params;
   return (
     <div className="flex min-h-screen flex-col bg-[#F6FAF7] p-4 sm:p-8">
       <div className="mx-auto w-full max-w-5xl">
-        <OpportunityDetails opportunityId={params.opportunity_id} />
+        <OpportunityDetails opportunityId={resolvedParams.opportunity_id} />
       </div>
     </div>
   );

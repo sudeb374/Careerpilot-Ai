@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import math
 from uuid import UUID
 
@@ -17,6 +18,7 @@ from app.schemas.opportunity import (
     OpportunityUpdate,
     PaginatedOpportunityResponse,
 )
+from app.services.opportunity import expire_overdue_opportunities
 
 router = APIRouter(
     prefix="/api/v1/admin/opportunities",
@@ -38,6 +40,8 @@ async def admin_list_opportunities(
     """
     List all opportunities for admins, including Drafts and Expired.
     """
+    await expire_overdue_opportunities(db)
+
     stmt = select(Opportunity)
 
     if q:
@@ -117,6 +121,9 @@ async def create_opportunity(
     """
     Create a new opportunity as an admin.
     """
+    if data.status == "Published" and data.deadline and data.deadline < datetime.now(timezone.utc):
+        raise HTTPException(status_code=422, detail="Cannot publish an opportunity with a past deadline.")
+
     opp_dict = data.model_dump(exclude={"required_skill_ids"})
     opp_dict["created_by_profile_id"] = admin_user.id
     
@@ -164,6 +171,8 @@ async def admin_get_opportunity(
     """
     Get any opportunity details by ID for admin.
     """
+    await expire_overdue_opportunities(db)
+
     stmt = select(Opportunity).options(
         selectinload(Opportunity.skills).joinedload(OpportunitySkill.skill)
     ).where(Opportunity.id == opportunity_id)
@@ -200,6 +209,11 @@ async def update_opportunity(
 
     update_data = data.model_dump(exclude_unset=True)
     
+    new_status = update_data.get("status", opp.status)
+    new_deadline = update_data.get("deadline", opp.deadline)
+    if new_status == "Published" and new_deadline and new_deadline < datetime.now(timezone.utc):
+        raise HTTPException(status_code=422, detail="Cannot publish an opportunity with a past deadline.")
+
     # Validation logic for min/max relationships if only one is updated
     new_exp_min = update_data.get("required_experience_min", opp.required_experience_min)
     new_exp_max = update_data.get("required_experience_max", opp.required_experience_max)

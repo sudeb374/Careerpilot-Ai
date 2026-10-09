@@ -27,12 +27,21 @@ from app.schemas.profile import (
     ProjectCreate,
     ProjectResponse,
     ProjectUpdate,
+    ResumeAnalysisResponse,
     ResumeDownloadResponse,
+    ResumeParseResponse,
     ResumeResponse,
+    ResumeStructureResponse,
 )
 from app.services import profile as profile_service
 from app.services import profile_picture as picture_service
 from app.services import resume as resume_service
+from app.services.opportunity import expire_overdue_opportunities
+from app.services.resume_analyzer import (
+    ResumeAnalyzerError,
+    analyze_resume,
+    get_resume_analysis,
+)
 
 router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
 
@@ -389,6 +398,66 @@ async def delete_resume(
     """Delete a resume."""
     await resume_service.delete_resume(db, profile.id, resume_id)
 
+
+@router.post("/resumes/{resume_id}/parse", response_model=ResumeParseResponse)
+async def parse_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Parse resume text from storage and save it."""
+    return await resume_service.parse_resume(db, profile.id, resume_id)
+
+@router.get("/resumes/{resume_id}/parsed-text", response_model=ResumeParseResponse)
+async def get_parsed_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get previously parsed resume text."""
+    resume = await resume_service.get_resume_by_id(db, profile.id, resume_id)
+    if not resume.parsed_text:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume has not been parsed yet."
+        )
+    return {
+        "id": resume.id,
+        "status": "success",
+        "character_count": len(resume.parsed_text),
+        "extracted_text": resume.parsed_text,
+        "message": "Retrieved previously parsed text."
+    }
+
+@router.post("/resumes/{resume_id}/structure", response_model=ResumeStructureResponse)
+async def structure_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Run structured extraction on the resume text."""
+    return await resume_service.structure_resume(db, profile.id, resume_id)
+
+@router.get("/resumes/{resume_id}/structured-data", response_model=ResumeStructureResponse)
+async def get_structured_resume(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get previously saved structured resume data."""
+    resume = await resume_service.get_resume_by_id(db, profile.id, resume_id)
+    if not resume.structured_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Structured data not found. Please extract structure first."
+        )
+    return {
+        "id": resume.id,
+        "status": "success",
+        "structured_data": resume.structured_data,
+        "message": "Retrieved previously structured data."
+    }
+
 # ==========================================
 # Profile Picture Endpoints
 # ==========================================
@@ -435,6 +504,7 @@ async def get_saved_opportunities(
     Get saved opportunities for the current user.
     """
     import math
+    await expire_overdue_opportunities(db)
     stmt = select(SavedOpportunity).where(
         SavedOpportunity.profile_id == current_user.id
     )
@@ -483,3 +553,31 @@ async def get_saved_opportunities(
         "total": total,
         "total_pages": total_pages
     }
+
+@router.post("/resumes/{resume_id}/analyze", response_model=ResumeAnalysisResponse)
+async def analyze_resume_endpoint(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        return await analyze_resume(db, profile.id, resume_id)
+    except ResumeAnalyzerError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+@router.get("/resumes/{resume_id}/analysis", response_model=ResumeAnalysisResponse)
+async def get_resume_analysis_endpoint(
+    resume_id: str,
+    profile=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        return await get_resume_analysis(db, profile.id, resume_id)
+    except ResumeAnalyzerError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )

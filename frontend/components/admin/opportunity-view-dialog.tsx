@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2, ExternalLink, AlertTriangle } from "lucide-react";
 
 interface OpportunityViewDialogProps {
   open: boolean;
@@ -103,6 +103,29 @@ export function OpportunityViewDialog({ open, onOpenChange, opportunityId }: Opp
         ) : opportunity ? (
           <div className="space-y-6 mt-4">
             
+            {(() => {
+              const warnings = [];
+              if (!opportunity.application_url) warnings.push("Missing application URL");
+              if (!opportunity.description) warnings.push("Missing description");
+              if (!opportunity.skills || opportunity.skills.length === 0) warnings.push("Missing required skills");
+              if (!opportunity.deadline) warnings.push("Missing deadline");
+              if (!opportunity.company_website && !opportunity.company_logo_url) warnings.push("Incomplete company information");
+
+              if (warnings.length > 0) {
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-md p-3 dark:bg-amber-900/20 dark:border-amber-800">
+                    <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-500 mb-1 flex items-center gap-1">
+                      <AlertTriangle className="h-4 w-4" /> Data Quality Warnings
+                    </h4>
+                    <ul className="list-disc pl-5 text-sm text-amber-700 dark:text-amber-400">
+                      {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                    </ul>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Type</p>
@@ -119,7 +142,15 @@ export function OpportunityViewDialog({ open, onOpenChange, opportunityId }: Opp
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Deadline</p>
                 <p className="font-medium">
-                  {opportunity.deadline ? new Date(opportunity.deadline).toLocaleDateString() : "—"}
+                  {opportunity.deadline 
+                    ? new Date(opportunity.deadline).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) 
+                    : "No deadline"}
                 </p>
               </div>
             </div>

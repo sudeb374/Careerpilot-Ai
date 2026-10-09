@@ -48,20 +48,18 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw { status: 404, message: "Opportunity not found" };
+          setError({ status: 404, message: "Opportunity not found" });
+          return;
         }
-        throw { status: response.status, message: "Unable to load this opportunity." };
+        setError({ status: response.status, message: "Unable to load this opportunity." });
+        return;
       }
 
       const data = await response.json();
       setOpportunity(data);
     } catch (err: unknown) {
-      console.error(err);
-      if (typeof err === "object" && err !== null && "status" in err) {
-        setError(err as { status: number; message: string });
-      } else {
-        setError({ status: 500, message: "Unable to load this opportunity." });
-      }
+      console.error("Failed to load opportunity:", err);
+      setError({ status: 500, message: "Unable to connect to the server." });
     } finally {
       setLoading(false);
     }

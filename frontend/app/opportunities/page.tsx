@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -31,7 +32,9 @@ export default function OpportunitiesPage() {
         </div>
 
         {/* Discovery Component */}
-        <OpportunityDiscovery />
+        <Suspense fallback={<div className="flex h-32 items-center justify-center">Loading...</div>}>
+          <OpportunityDiscovery />
+        </Suspense>
       </div>
     </div>
   );

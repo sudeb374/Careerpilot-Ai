@@ -16,6 +16,8 @@ from app.schemas.opportunity import (
     PaginatedOpportunityResponse,
     SavedOpportunityState,
 )
+from app.services.opportunity import expire_overdue_opportunities
+
 
 router = APIRouter(
     prefix="/api/v1/opportunities",
@@ -38,6 +40,8 @@ async def list_opportunities(
     """
     List active opportunities for students.
     """
+    await expire_overdue_opportunities(db)
+
     stmt = select(Opportunity).where(Opportunity.status == "Published")
 
     if q:
@@ -133,6 +137,8 @@ async def get_opportunity(
     """
     Get details of a specific published opportunity.
     """
+    await expire_overdue_opportunities(db)
+
     stmt = select(Opportunity).options(
         selectinload(Opportunity.skills).joinedload(OpportunitySkill.skill)
     ).where(
@@ -165,6 +171,8 @@ async def save_opportunity(
     """
     Save an opportunity for the current user.
     """
+    await expire_overdue_opportunities(db)
+
     stmt = select(Opportunity).where(
         Opportunity.id == opportunity_id,
         Opportunity.status == "Published"

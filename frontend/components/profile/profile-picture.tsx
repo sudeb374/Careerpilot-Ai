@@ -114,7 +114,7 @@ export function ProfilePicture({ fullName, initialPictureUrl = null }: ProfilePi
         const errData = await res.json().catch(() => ({}));
         setError(errData.detail || "Failed to upload image.");
       }
-    } catch (_err) {
+    } catch {
       setError("Network error during upload.");
     } finally {
       setIsUploading(false);
@@ -144,7 +144,7 @@ export function ProfilePicture({ fullName, initialPictureUrl = null }: ProfilePi
       } else {
         setError("Failed to delete image.");
       }
-    } catch (_err) {
+    } catch {
       setError("Network error during deletion.");
     } finally {
       setIsUploading(false);
