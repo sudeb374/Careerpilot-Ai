@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SaveButton } from "./save-button";
 import { createClient } from "@/lib/supabase/client";
+import { OpportunityMatchSummary } from "./match-summary";
 
 interface OpportunityDetailsProps {
   opportunityId: string;
@@ -284,6 +285,8 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
           </div>
         </div>
       </div>
+
+      <OpportunityMatchSummary opportunityId={opportunity.id} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content Column */}

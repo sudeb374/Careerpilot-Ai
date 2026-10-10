@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql+psycopg://user:password@localhost:5432/careerpilot"
+    test_database_url: str | None = None
 
     # Supabase
     supabase_url: str = ""

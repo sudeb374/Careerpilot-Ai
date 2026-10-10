@@ -1,17 +1,25 @@
 import os
 import sys
+from datetime import date
 from uuid import uuid4
-from datetime import date, datetime, timezone, timedelta
 
 import pytest
-from sqlalchemy import select
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from app.core.database import async_session_factory
-from app.models.profile import Profile, ProfileSkill, Resume, Skill, Education, Experience, CareerPreference
 from app.models.opportunity import Opportunity, OpportunitySkill
+from app.models.profile import (
+    CareerPreference,
+    Education,
+    Experience,
+    Profile,
+    ProfileSkill,
+    Resume,
+    Skill,
+)
 from app.services.matching import calculate_opportunity_match
+
 
 async def setup_test_data(db):
     user_id = uuid4()
@@ -21,15 +29,21 @@ async def setup_test_data(db):
     await db.refresh(profile)
 
     # Add Skills
-    skill_python = Skill(name="Test Python", normalized_name=f"test_python_{uuid4().hex[:8]}")
-    skill_react = Skill(name="Test React", normalized_name=f"test_react_{uuid4().hex[:8]}")
-    skill_java = Skill(name="Test Java", normalized_name=f"test_java_{uuid4().hex[:8]}")
-    db.add_all([skill_python, skill_react, skill_java])
-    await db.commit()
-    
-    await db.refresh(skill_python)
-    await db.refresh(skill_react)
-    await db.refresh(skill_java)
+    async def get_or_create_skill(name: str):
+        norm = name.lower()
+        from sqlalchemy import select
+        res = await db.execute(select(Skill).where(Skill.normalized_name == norm))
+        skill = res.scalar_one_or_none()
+        if not skill:
+            skill = Skill(id=uuid4(), name=name, normalized_name=norm)
+            db.add(skill)
+            await db.commit()
+            await db.refresh(skill)
+        return skill
+
+    skill_python = await get_or_create_skill("Python")
+    skill_react = await get_or_create_skill("React")
+    skill_java = await get_or_create_skill("Java")
 
     return {
         "profile": profile,
@@ -47,7 +61,6 @@ async def cleanup_test_data(db, data):
     await db.execute(Experience.__table__.delete())
     await db.execute(Education.__table__.delete())
     await db.execute(Profile.__table__.delete().where(Profile.id == data["profile"].id))
-    await db.execute(Skill.__table__.delete().where(Skill.id.in_([data["skill_python"].id, data["skill_react"].id, data["skill_java"].id])))
     await db.commit()
 
 @pytest.mark.anyio

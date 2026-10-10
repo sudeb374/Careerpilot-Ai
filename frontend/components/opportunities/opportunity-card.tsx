@@ -6,10 +6,11 @@ import { SaveButton } from "./save-button";
 
 export type OpportunityCardProps = {
   opportunity: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  match?: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   onSavedChange?: (saved: boolean) => void;
 };
 
-export function OpportunityCard({ opportunity, onSavedChange }: OpportunityCardProps) {
+export function OpportunityCard({ opportunity, match, onSavedChange }: OpportunityCardProps) {
   // Format deadline securely
   const formatDeadline = (dateString: string | null) => {
     if (!dateString) return "No deadline";
@@ -47,8 +48,17 @@ export function OpportunityCard({ opportunity, onSavedChange }: OpportunityCardP
       <div className="flex-grow flex flex-col justify-between">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
           <div>
-            <h3 className="text-xl font-bold text-[#14261C] mb-1">
+            <h3 className="text-xl font-bold text-[#14261C] mb-1 flex items-center gap-3">
               {opportunity.title}
+              {match && match.score !== null && (
+                <Badge className={`px-2 py-0.5 text-xs ${
+                  match.score >= 80 ? "bg-green-100 text-green-800 hover:bg-green-100 border-green-200" :
+                  match.score >= 60 ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200" :
+                  "bg-orange-100 text-orange-800 hover:bg-orange-100 border-orange-200"
+                }`}>
+                  {Math.round(match.score)}% Match
+                </Badge>
+              )}
             </h3>
             <p className="text-muted-foreground font-medium mb-3">
               {opportunity.company_name}
@@ -65,6 +75,11 @@ export function OpportunityCard({ opportunity, onSavedChange }: OpportunityCardP
               {opportunity.domain && (
                 <Badge variant="outline" className="bg-[#FFF8EB] text-[#B45309] border-[#F59E0B]/20">
                   {opportunity.domain}
+                </Badge>
+              )}
+              {match && match.data_coverage && (
+                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                  Coverage: {match.data_coverage}
                 </Badge>
               )}
             </div>
@@ -112,6 +127,33 @@ export function OpportunityCard({ opportunity, onSavedChange }: OpportunityCardP
                     {skill.name}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {/* Match Explanation */}
+            {match && match.explanation && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-700 mb-2"><strong>Match Summary:</strong> {match.explanation.summary}</p>
+                {match.matched_skills && match.matched_skills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 items-center">
+                    <span className="text-xs font-semibold text-green-700 mr-1">Matched Skills:</span>
+                    {match.matched_skills.map((skill: string) => (
+                      <span key={skill} className="px-2 py-0.5 text-[10px] bg-green-50 text-green-700 border border-green-200 rounded-md">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {match.missing_required_skills && match.missing_required_skills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 items-center">
+                    <span className="text-xs font-semibold text-orange-700 mr-1">Missing Skills:</span>
+                    {match.missing_required_skills.map((skill: string) => (
+                      <span key={skill} className="px-2 py-0.5 text-[10px] bg-orange-50 text-orange-700 border border-orange-200 rounded-md">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
