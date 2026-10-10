@@ -14,7 +14,7 @@ def mock_embeddings():
          patch('app.services.matching.calculate_max_similarity', new_callable=AsyncMock) as mock_sim:
         yield mock_sim
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_semantic_role_match(mock_embeddings):
     # Setup mock to return a high score for role match
     mock_embeddings.side_effect = lambda target, candidates: (0.85, "Software Engineer") if "Software Engineer" in candidates else (None, None)
@@ -30,7 +30,7 @@ async def test_semantic_role_match(mock_embeddings):
     role_comp = next(c for c in resp.component_scores if c.component == "Desired Role")
     assert role_comp.awarded_points == 20.0
     
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_semantic_education_match(mock_embeddings):
     # Mock education similarity
     def mock_sim_side_effect(target, candidates):
@@ -52,7 +52,7 @@ async def test_semantic_education_match(mock_embeddings):
     assert edu_comp.awarded_points == 15.0
     assert "Education aligns with requirements" in edu_comp.explanation
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_semantic_education_mismatch(mock_embeddings):
     # Mock low similarity
     mock_embeddings.side_effect = None
@@ -71,7 +71,7 @@ async def test_semantic_education_mismatch(mock_embeddings):
     assert edu_comp.awarded_points == 7.5 # Only gets Experience points
     assert "Education may not meet requirements" in edu_comp.explanation
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_deterministic_fallback():
     # Test when model is unavailable
     with patch('app.services.matching.is_model_available', return_value=False):
@@ -85,7 +85,7 @@ async def test_deterministic_fallback():
         role_comp = next(c for c in resp.component_scores if c.component == "Desired Role")
         assert role_comp.awarded_points == 20.0
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_semantic_role_mismatch_no_fallback(mock_embeddings):
     # Test that a score below threshold does not silently trigger exact fallback
     # even if there's a substring match.

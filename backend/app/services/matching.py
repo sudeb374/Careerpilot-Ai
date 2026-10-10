@@ -41,7 +41,8 @@ async def get_candidate_evidence(db: AsyncSession, profile_id: uuid.UUID) -> Can
             selectinload(Profile.career_preferences),
             selectinload(Profile.skills).selectinload(ProfileSkill.skill),
             selectinload(Profile.resumes),
-            selectinload(Profile.experiences)
+            selectinload(Profile.experiences),
+            selectinload(Profile.educations)
         )
         .where(Profile.id == profile_id)
     )
