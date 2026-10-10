@@ -83,11 +83,12 @@ async def setup_test_db():
 
 async def cleanup_test_db(data):
     async with async_session_factory() as db:
-        await db.execute(SavedOpportunity.__table__.delete())
-        await db.execute(Opportunity.__table__.delete().where(Opportunity.id.in_([
+        opp_ids = [
             data["pub_future_id"], data["pub_past_id"], data["pub_none_id"],
             data["draft_past_id"], data["closed_past_id"], data["expired_id"]
-        ])))
+        ]
+        await db.execute(SavedOpportunity.__table__.delete().where(SavedOpportunity.opportunity_id.in_(opp_ids)))
+        await db.execute(Opportunity.__table__.delete().where(Opportunity.id.in_(opp_ids)))
         await db.execute(Profile.__table__.delete().where(Profile.user_id.in_([TEST_USER_ID, TEST_ADMIN_ID])))
         await db.commit()
 

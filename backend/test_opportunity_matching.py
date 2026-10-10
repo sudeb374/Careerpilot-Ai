@@ -53,14 +53,12 @@ async def setup_test_data(db):
     }
 
 async def cleanup_test_data(db, data):
-    await db.execute(OpportunitySkill.__table__.delete())
-    await db.execute(Opportunity.__table__.delete())
-    await db.execute(Resume.__table__.delete())
-    await db.execute(ProfileSkill.__table__.delete())
-    await db.execute(CareerPreference.__table__.delete())
-    await db.execute(Experience.__table__.delete())
-    await db.execute(Education.__table__.delete())
+    # Delete the test profile (which cascades to Resume, Education, Experience, ProfileSkill, CareerPreference)
     await db.execute(Profile.__table__.delete().where(Profile.id == data["profile"].id))
+    
+    # The OpportunitySkill table has CASCADE from Opportunity, but we didn't create an Opportunity in setup_test_data!
+    # Wait, test_opportunity_matching doesn't create any Opportunities in setup_test_data. It only tests matching logic on dummy Opportunity instances.
+    # So we don't need to delete from Opportunity.__table__ or OpportunitySkill.__table__ here!
     await db.commit()
 
 @pytest.mark.anyio
