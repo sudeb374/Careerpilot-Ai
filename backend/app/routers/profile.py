@@ -609,7 +609,7 @@ async def get_opportunity_matches(
     # 3. Calculate matches deterministically
     match_items = []
     for opp in opportunities:
-        match_result = calculate_match_with_evidence(opp, evidence)
+        match_result = await calculate_match_with_evidence(opp, evidence)
         
         # Compose OpportunityListItem
         skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]

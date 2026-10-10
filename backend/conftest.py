@@ -38,6 +38,8 @@ db_module.async_session_factory = test_async_session_factory
 # Also override the FastAPI dependency
 from app.main import app
 
+# 4. Disable semantic embeddings in tests globally to prevent model downloads
+patch('app.services.matching.is_model_available', return_value=False).start()
 async def override_get_db_session():
     async with test_async_session_factory() as session:
         try:

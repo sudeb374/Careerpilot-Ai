@@ -14,6 +14,7 @@ from app.schemas.matching import (
     MatchExplanation,
     OpportunityMatchResponse,
 )
+from app.services.embeddings import calculate_max_similarity, is_model_available
 
 
 @dataclass
@@ -24,6 +25,7 @@ class CandidateEvidence:
     locations: list[str]
     preferred_domains: list[str]
     years_exp: float
+    education_text: list[str]
 
 
 def normalize_text(text: str) -> str:
@@ -75,17 +77,28 @@ async def get_candidate_evidence(db: AsyncSession, profile_id: uuid.UUID) -> Can
             if days > 0:
                 years_exp += days / 365.25
 
+    education_text = []
+    for edu in profile.educations:
+        edu_parts = []
+        if edu.degree:
+            edu_parts.append(edu.degree)
+        if edu.field_of_study:
+            edu_parts.append(edu.field_of_study)
+        if edu_parts:
+            education_text.append(" in ".join(edu_parts))
+
     return CandidateEvidence(
         candidate_skill_ids=candidate_skill_ids,
         desired_roles=desired_roles,
         work_model=work_model,
         locations=locations,
         preferred_domains=preferred_domains,
-        years_exp=years_exp
+        years_exp=years_exp,
+        education_text=education_text
     )
 
 
-def calculate_match_with_evidence(
+async def calculate_match_with_evidence(
     opportunity: Opportunity, 
     evidence: CandidateEvidence
 ) -> OpportunityMatchResponse:
@@ -160,12 +173,24 @@ def calculate_match_with_evidence(
         opp_title_norm = normalize_text(opportunity.title)
         role_matched = False
         matched_role_name = ""
-        for dr in evidence.desired_roles:
-            dr_norm = normalize_text(dr)
-            if dr_norm and (dr_norm in opp_title_norm or opp_title_norm in dr_norm):
-                role_matched = True
-                matched_role_name = dr
-                break
+        
+        model_available = is_model_available()
+        if model_available:
+            score, cand_role = await calculate_max_similarity(opportunity.title, evidence.desired_roles)
+            if score is not None:
+                if score >= 0.5:
+                    role_matched = True
+                    matched_role_name = cand_role
+            else:
+                model_available = False # Inference error, allow fallback
+                
+        if not model_available:
+            for dr in evidence.desired_roles:
+                dr_norm = normalize_text(dr)
+                if dr_norm and (dr_norm in opp_title_norm or opp_title_norm in dr_norm):
+                    role_matched = True
+                    matched_role_name = dr
+                    break
                 
         if role_matched:
             total_awarded += max_role_pts
@@ -262,9 +287,22 @@ def calculate_match_with_evidence(
         exp_edu_max += 7.5
         exp_edu_pts += 7.5
         
+    edu_explanation = "Education explicitly required: False."
     if opportunity.education_requirements:
-        not_assessed.append("Education Text")
-        limitations.append("Free-text education requirements cannot be deterministically verified.")
+        exp_edu_max += 7.5
+        if evidence.education_text:
+            edu_score, edu_match = await calculate_max_similarity(opportunity.education_requirements, evidence.education_text)
+            if edu_score is not None and edu_score >= 0.4:
+                exp_edu_pts += 7.5
+                matched_factors.append("Education")
+                edu_explanation = "Education aligns with requirements."
+            else:
+                edu_explanation = "Education may not meet requirements."
+        else:
+            not_assessed.append("Education Text")
+            limitations.append("Opportunity requires education, but none is in candidate profile.")
+            exp_edu_max -= 7.5
+            edu_explanation = "Education requirements present, but candidate has no education records."
     else:
         exp_edu_max += 7.5
         exp_edu_pts += 7.5
@@ -275,7 +313,7 @@ def calculate_match_with_evidence(
         component="Experience & Education",
         awarded_points=exp_edu_pts,
         max_points=exp_edu_max,
-        explanation=f"Experience verified. Education explicitly required: {bool(opportunity.education_requirements)}."
+        explanation=f"Experience verified. {edu_explanation}"
     ))
 
     # 5. Preferred Domain (10 pts)
@@ -379,4 +417,4 @@ async def calculate_opportunity_match(
         raise ValueError("Opportunity not found")
 
     evidence = await get_candidate_evidence(db, profile_id)
-    return calculate_match_with_evidence(opportunity, evidence)
+    return await calculate_match_with_evidence(opportunity, evidence)
