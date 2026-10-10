@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Upload, FileText, CheckCircle2, Trash2, Download, AlertCircle, FileIcon, BarChart, RefreshCw, Info, ShieldCheck, Sparkles, AlertTriangle, Copy } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, Upload, FileText, CheckCircle2, Trash2, Download, AlertCircle, FileIcon, BarChart, RefreshCw, Info, ShieldCheck, Sparkles, AlertTriangle, Copy, MoreVertical } from "lucide-react";
 
 interface Resume {
   id: string;
@@ -78,6 +79,14 @@ interface ResumeAnalysisResponse {
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+function formatDate(dateString: string) {
+  const d = new Date(dateString);
+  const day = d.getDate();
+  const month = d.toLocaleString('en-GB', { month: 'short' });
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+}
 
 function SafeUrl({ url }: { url: string }) {
   let isValid = false;
@@ -668,13 +677,194 @@ export function ResumeSection() {
   const activeResume = resumes.find(r => r.is_active);
   const otherResumes = resumes.filter(r => !r.is_active);
 
+  const renderResumeActions = (resume: Resume, isActive: boolean) => (
+    <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+      <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2">
+        {/* Primary Action */}
+        {resume.has_analysis ? (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => handleViewAnalysis(resume.id)}
+            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null || isAnalyzing !== null}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isAnalyzing === resume.id ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-2 h-4 w-4" />
+            )}
+            View Analysis
+          </Button>
+        ) : resume.has_structured_data ? (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => handleAnalyzeResume(resume.id, resume.original_filename)}
+            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null || isAnalyzing !== null}
+          >
+            {isAnalyzing === resume.id ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Analyze Resume
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button variant="default" size="sm" disabled>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Analyze Resume
+          </Button>
+        )}
+
+        {/* Secondary Action */}
+        {resume.has_structured_data ? (
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={() => handleViewStructuredData(resume.id)}
+            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            View Extracted Details
+          </Button>
+        ) : resume.has_parsed_text ? (
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={() => handleStructureResume(resume.id, resume.original_filename)}
+            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
+          >
+            {isStructuring === resume.id ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Structuring...
+              </>
+            ) : (
+              <>
+                <FileText className="mr-2 h-4 w-4" />
+                Extract Structured Data
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={() => handleExtractText(resume.id, resume.original_filename)}
+            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
+          >
+            {isExtracting === resume.id ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Extracting...
+              </>
+            ) : (
+              <>
+                <FileText className="mr-2 h-4 w-4" />
+                Extract Text
+              </>
+            )}
+          </Button>
+        )}
+
+        {/* More Actions Dropdown */}
+        <Popover>
+          <PopoverTrigger 
+            render={
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="px-2" 
+                disabled={actionLoading !== null || isUploading} 
+              />
+            }
+          >
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">More actions</span>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-48 p-1">
+            <div className="flex flex-col space-y-1">
+              {resume.has_parsed_text && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start w-full"
+                  onClick={() => handleViewExtractedText(resume.id)}
+                  disabled={isExtracting !== null || isStructuring !== null}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  View Extracted Text
+                </Button>
+              )}
+              {resume.has_structured_data && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start w-full"
+                  onClick={() => handleStructureResume(resume.id, resume.original_filename, true)}
+                  disabled={isExtracting !== null || isStructuring !== null}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Re-extract Details
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="justify-start w-full"
+                onClick={() => handleDownload(resume.id, resume.original_filename)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+              {!isActive && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start w-full"
+                  onClick={() => handleActivate(resume.id)}
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Set as Active
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="justify-start w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => handleDelete(resume.id, isActive)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      
+      {!resume.has_structured_data && (
+        <p className="text-xs text-muted-foreground text-left sm:text-right mt-1">
+          {!resume.has_parsed_text 
+            ? "Text extraction must happen first before analysis is available." 
+            : "Structured data must be extracted first before analysis is available."}
+        </p>
+      )}
+    </div>
+  );
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Resume Intelligence</CardTitle>
           <CardDescription>
-            Manage your resumes. Resume analysis and insights will be available in a future CareerPilot feature.
+            Manage your resumes, review extracted details, and discover actionable ways to improve your resume.
           </CardDescription>
         </div>
         <div>
@@ -749,157 +939,11 @@ export function ResumeSection() {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1" suppressHydrationWarning>
-                        {formatFileSize(activeResume.file_size)} • Uploaded {new Date(activeResume.created_at).toLocaleDateString()}
+                        {formatFileSize(activeResume.file_size)} • Uploaded {formatDate(activeResume.created_at)}
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDownload(activeResume.id, activeResume.original_filename)}
-                      disabled={actionLoading !== null || isUploading}
-                    >
-                      {actionLoading === `download-${activeResume.id}` ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="mr-2 h-4 w-4" />
-                      )}
-                      Download
-                    </Button>
-                    
-                    {activeResume.has_structured_data ? (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleViewStructuredData(activeResume.id)}
-                          disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                        >
-                          <FileText className="mr-2 h-4 w-4" />
-                          View Extracted Details
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleStructureResume(activeResume.id, activeResume.original_filename, true)}
-                          disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                        >
-                          {isStructuring === activeResume.id ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                          )}
-                          Re-extract Details
-                        </Button>
-                      </>
-                    ) : activeResume.has_parsed_text ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleStructureResume(activeResume.id, activeResume.original_filename)}
-                        disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                      >
-                        {isStructuring === activeResume.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Structuring Resume...
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Extract Structured Data
-                          </>
-                        )}
-                      </Button>
-                    ) : null}
-
-                    {activeResume.has_parsed_text ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleViewExtractedText(activeResume.id)}
-                        disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                      >
-                        {isExtracting === activeResume.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <FileText className="mr-2 h-4 w-4" />
-                        )}
-                        View Extracted Text
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleExtractText(activeResume.id, activeResume.original_filename)}
-                        disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                      >
-                        {isExtracting === activeResume.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Extracting...
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Extract Text
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {activeResume.has_analysis ? (
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        onClick={() => handleViewAnalysis(activeResume.id)}
-                        disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null || isAnalyzing !== null}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90"
-                      >
-                        {isAnalyzing === activeResume.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="mr-2 h-4 w-4" />
-                        )}
-                        View Analysis
-                      </Button>
-                    ) : activeResume.has_structured_data ? (
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        onClick={() => handleAnalyzeResume(activeResume.id, activeResume.original_filename)}
-                        disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null || isAnalyzing !== null}
-                      >
-                        {isAnalyzing === activeResume.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="mr-2 h-4 w-4" />
-                            Analyze Resume
-                          </>
-                        )}
-                      </Button>
-                    ) : null}
-
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDelete(activeResume.id, true)}
-                      disabled={actionLoading !== null || isUploading}
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      {actionLoading === `delete-${activeResume.id}` ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
+                  {renderResumeActions(activeResume, true)}
                 </div>
               </div>
             )}
@@ -917,170 +961,11 @@ export function ResumeSection() {
                         <div>
                           <p className="font-medium text-foreground">{resume.original_filename}</p>
                           <p className="text-sm text-muted-foreground mt-1" suppressHydrationWarning>
-                            {formatFileSize(resume.file_size)} • Uploaded {new Date(resume.created_at).toLocaleDateString()}
+                            {formatFileSize(resume.file_size)} • Uploaded {formatDate(resume.created_at)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          onClick={() => handleActivate(resume.id)}
-                          disabled={actionLoading !== null || isUploading}
-                        >
-                          {actionLoading === `activate-${resume.id}` ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <CheckCircle2 className="mr-2 h-4 w-4" />
-                          )}
-                          Set as Active
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDownload(resume.id, resume.original_filename)}
-                          disabled={actionLoading !== null || isUploading}
-                        >
-                          {actionLoading === `download-${resume.id}` ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Download className="mr-2 h-4 w-4" />
-                          )}
-                          <span className="sr-only sm:not-sr-only sm:ml-2">Download</span>
-                        </Button>
-
-                        {resume.has_structured_data ? (
-                          <>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleViewStructuredData(resume.id)}
-                              disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                            >
-                              <FileText className="mr-2 h-4 w-4" />
-                              View Extracted Details
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleStructureResume(resume.id, resume.original_filename, true)}
-                              disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                            >
-                              {isStructuring === resume.id ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              ) : (
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                              )}
-                              Re-extract Details
-                            </Button>
-                          </>
-                        ) : resume.has_parsed_text ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleStructureResume(resume.id, resume.original_filename)}
-                            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                          >
-                            {isStructuring === resume.id ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Structuring...
-                              </>
-                            ) : (
-                              <>
-                                <FileText className="mr-2 h-4 w-4" />
-                                Extract Structured Data
-                              </>
-                            )}
-                          </Button>
-                        ) : null}
-
-                        {resume.has_parsed_text ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleViewExtractedText(resume.id)}
-                            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                          >
-                            {isExtracting === resume.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <FileText className="mr-2 h-4 w-4" />
-                            )}
-                            View Extracted Text
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleExtractText(resume.id, resume.original_filename)}
-                            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null}
-                          >
-                            {isExtracting === resume.id ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Extracting...
-                              </>
-                            ) : (
-                              <>
-                                <FileText className="mr-2 h-4 w-4" />
-                                Extract Text
-                              </>
-                            )}
-                          </Button>
-                        )}
-
-                        {resume.has_analysis ? (
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            onClick={() => handleViewAnalysis(resume.id)}
-                            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null || isAnalyzing !== null}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                          >
-                            {isAnalyzing === resume.id ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Sparkles className="mr-2 h-4 w-4" />
-                            )}
-                            View Analysis
-                          </Button>
-                        ) : resume.has_structured_data ? (
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            onClick={() => handleAnalyzeResume(resume.id, resume.original_filename)}
-                            disabled={actionLoading !== null || isUploading || isExtracting !== null || isStructuring !== null || isAnalyzing !== null}
-                          >
-                            {isAnalyzing === resume.id ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Analyzing...
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="mr-2 h-4 w-4" />
-                                Analyze Resume
-                              </>
-                            )}
-                          </Button>
-                        ) : null}
-
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDelete(resume.id, false)}
-                          disabled={actionLoading !== null || isUploading}
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          {actionLoading === `delete-${resume.id}` ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
+                      {renderResumeActions(resume, false)}
                     </div>
                   ))}
                 </div>
