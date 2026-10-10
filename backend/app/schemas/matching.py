@@ -26,3 +26,18 @@ class OpportunityMatchResponse(BaseModel):
     component_scores: list[MatchComponentScore]
     components_not_assessed: list[str]
     explanation: MatchExplanation
+
+from app.schemas.opportunity import OpportunityListItem
+
+
+class OpportunityMatchItem(BaseModel):
+    opportunity: OpportunityListItem
+    match: OpportunityMatchResponse
+
+class PaginatedOpportunityMatchResponse(BaseModel):
+    items: list[OpportunityMatchItem]
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
+

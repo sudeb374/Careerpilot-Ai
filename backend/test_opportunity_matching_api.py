@@ -126,6 +126,7 @@ async def setup_test_db():
 
 @pytest.mark.anyio
 async def test_matching_api():
+    app.dependency_overrides.clear()
     data = await setup_test_db()
     transport = ASGITransport(app=app)
     

@@ -1,5 +1,6 @@
 import re
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,29 +16,79 @@ from app.schemas.matching import (
 )
 
 
+@dataclass
+class CandidateEvidence:
+    candidate_skill_ids: set[str]
+    desired_roles: list[str]
+    work_model: list[str]
+    locations: list[str]
+    preferred_domains: list[str]
+    years_exp: float
+
+
 def normalize_text(text: str) -> str:
     if not text:
         return ""
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
-async def calculate_opportunity_match(
-    db: AsyncSession,
-    profile_id: uuid.UUID,
-    opportunity_id: uuid.UUID
-) -> OpportunityMatchResponse:
-    opp_stmt = (
-        select(Opportunity)
+
+async def get_candidate_evidence(db: AsyncSession, profile_id: uuid.UUID) -> CandidateEvidence:
+    prof_stmt = (
+        select(Profile)
         .options(
-            selectinload(Opportunity.skills).selectinload(OpportunitySkill.skill)
+            selectinload(Profile.career_preferences),
+            selectinload(Profile.skills).selectinload(ProfileSkill.skill),
+            selectinload(Profile.resumes),
+            selectinload(Profile.experiences)
         )
-        .where(Opportunity.id == opportunity_id)
+        .where(Profile.id == profile_id)
     )
-    opp_res = await db.execute(opp_stmt)
-    opportunity = opp_res.scalar_one_or_none()
+    prof_res = await db.execute(prof_stmt)
+    profile = prof_res.scalar_one_or_none()
     
-    if not opportunity:
-        raise ValueError("Opportunity not found")
-        
+    if not profile:
+        raise ValueError("Profile not found")
+
+    candidate_skill_ids: set[str] = set()
+    for ps in profile.skills:
+        if ps.skill_id:
+            candidate_skill_ids.add(str(ps.skill_id))
+
+    active_resume = next((r for r in profile.resumes if r.is_active), None)
+    if active_resume and active_resume.has_structured_data:
+        resume_skills = active_resume.structured_data.get("skills", [])
+        for rs in resume_skills:
+            if rs.get("skill_id"):
+                candidate_skill_ids.add(str(rs["skill_id"]))
+                
+    prefs = profile.career_preferences
+    desired_roles = prefs.desired_roles if prefs and prefs.desired_roles else []
+    work_model = prefs.work_model if prefs and prefs.work_model else []
+    locations = prefs.locations if prefs and prefs.locations else []
+    preferred_domains = prefs.preferred_domains if prefs and prefs.preferred_domains else []
+    
+    years_exp = 0.0
+    for exp in profile.experiences:
+        if exp.start_date:
+            end = exp.end_date if exp.end_date else datetime.now(timezone.utc).date()
+            days = (end - exp.start_date).days
+            if days > 0:
+                years_exp += days / 365.25
+
+    return CandidateEvidence(
+        candidate_skill_ids=candidate_skill_ids,
+        desired_roles=desired_roles,
+        work_model=work_model,
+        locations=locations,
+        preferred_domains=preferred_domains,
+        years_exp=years_exp
+    )
+
+
+def calculate_match_with_evidence(
+    opportunity: Opportunity, 
+    evidence: CandidateEvidence
+) -> OpportunityMatchResponse:
     if opportunity.status != "Published":
         return OpportunityMatchResponse(
             scoring_version="1.0",
@@ -57,36 +108,6 @@ async def calculate_opportunity_match(
             )
         )
 
-    prof_stmt = (
-        select(Profile)
-        .options(
-            selectinload(Profile.career_preferences),
-            selectinload(Profile.skills).selectinload(ProfileSkill.skill),
-            selectinload(Profile.resumes),
-            selectinload(Profile.experiences),
-            selectinload(Profile.educations)
-        )
-        .where(Profile.id == profile_id)
-    )
-    prof_res = await db.execute(prof_stmt)
-    profile = prof_res.scalar_one_or_none()
-    
-    if not profile:
-        raise ValueError("Profile not found")
-
-    # 1. Candidate Skills
-    candidate_skill_ids: set[str] = set()
-    for ps in profile.skills:
-        if ps.skill_id:
-            candidate_skill_ids.add(str(ps.skill_id))
-
-    active_resume = next((r for r in profile.resumes if r.is_active), None)
-    if active_resume and active_resume.has_structured_data:
-        resume_skills = active_resume.structured_data.get("skills", [])
-        for rs in resume_skills:
-            if rs.get("skill_id"):
-                candidate_skill_ids.add(str(rs["skill_id"]))
-                
     components = []
     not_assessed = []
     matched_skills = []
@@ -106,7 +127,7 @@ async def calculate_opportunity_match(
         total_assessable_max += max_skill_pts
         matched_count = 0
         for os in opp_skills:
-            if str(os.skill_id) in candidate_skill_ids:
+            if str(os.skill_id) in evidence.candidate_skill_ids:
                 matched_count += 1
                 matched_skills.append(os.skill.name)
             else:
@@ -132,15 +153,14 @@ async def calculate_opportunity_match(
         limitations.append("Opportunity does not specify required skills.")
 
     # 2. Desired Role (20 pts)
-    prefs = profile.career_preferences
-    if prefs and prefs.desired_roles:
+    if evidence.desired_roles:
         max_role_pts = 20.0
         total_assessable_max += max_role_pts
         
         opp_title_norm = normalize_text(opportunity.title)
         role_matched = False
         matched_role_name = ""
-        for dr in prefs.desired_roles:
+        for dr in evidence.desired_roles:
             dr_norm = normalize_text(dr)
             if dr_norm and (dr_norm in opp_title_norm or opp_title_norm in dr_norm):
                 role_matched = True
@@ -171,43 +191,42 @@ async def calculate_opportunity_match(
         limitations.append("Candidate has not specified desired roles.")
 
     # 3. Work Model & Location (15 pts)
-    if prefs and (prefs.work_model or prefs.locations):
+    if evidence.work_model or evidence.locations:
         max_model_loc_pts = 15.0
         total_assessable_max += max_model_loc_pts
         awarded = 0.0
         
         model_matched = False
-        if prefs.work_model and opportunity.work_model:
+        if evidence.work_model and opportunity.work_model:
             opp_model_norm = normalize_text(opportunity.work_model)
-            for m in prefs.work_model:
+            for m in evidence.work_model:
                 if normalize_text(m) == opp_model_norm:
                     model_matched = True
                     break
-        elif not prefs.work_model:
+        elif not evidence.work_model:
             model_matched = True
             
         loc_matched = False
-        if prefs.locations and opportunity.locations:
+        if evidence.locations and opportunity.locations:
             opp_locs_norm = [normalize_text(l) for l in opportunity.locations]
-            for l in prefs.locations:
-                # E.g. opportunity has 'San Francisco, CA' and candidate prefers 'San Francisco'
+            for l in evidence.locations:
                 l_norm = normalize_text(l)
                 if any(l_norm in opp_loc for opp_loc in opp_locs_norm) or any(opp_loc in l_norm for opp_loc in opp_locs_norm):
                     loc_matched = True
                     break
-        elif not prefs.locations:
+        elif not evidence.locations:
             loc_matched = True
             
         if model_matched:
             awarded += 7.5
-            if prefs.work_model:
+            if evidence.work_model:
                 matched_factors.append(f"Work Model: {opportunity.work_model}")
         else:
             mismatched_preferences.append("Work Model")
             
         if loc_matched:
             awarded += 7.5
-            if prefs.locations:
+            if evidence.locations:
                 matched_factors.append("Location")
         else:
             mismatched_preferences.append("Location")
@@ -229,20 +248,11 @@ async def calculate_opportunity_match(
     exp_edu_pts = 0.0
     exp_edu_max = 0.0
     
-    # Calculate Candidate experience in years
-    years_exp = 0.0
-    for exp in profile.experiences:
-        if exp.start_date:
-            end = exp.end_date if exp.end_date else datetime.now(timezone.utc).date()
-            days = (end - exp.start_date).days
-            if days > 0:
-                years_exp += days / 365.25
-                
     if opportunity.required_experience_min is not None and opportunity.required_experience_min > 0:
         exp_edu_max += 7.5
-        if years_exp >= opportunity.required_experience_min:
+        if evidence.years_exp >= opportunity.required_experience_min:
             if opportunity.required_experience_max is not None:
-                if years_exp <= opportunity.required_experience_max:
+                if evidence.years_exp <= opportunity.required_experience_max:
                     exp_edu_pts += 7.5
                     matched_factors.append("Experience")
             else:
@@ -269,13 +279,13 @@ async def calculate_opportunity_match(
     ))
 
     # 5. Preferred Domain (10 pts)
-    if prefs and prefs.preferred_domains and opportunity.domain:
+    if evidence.preferred_domains and opportunity.domain:
         max_domain_pts = 10.0
         total_assessable_max += max_domain_pts
         
         opp_domain_norm = normalize_text(opportunity.domain)
         domain_matched = False
-        for pd in prefs.preferred_domains:
+        for pd in evidence.preferred_domains:
             if normalize_text(pd) == opp_domain_norm:
                 domain_matched = True
                 break
@@ -299,7 +309,7 @@ async def calculate_opportunity_match(
             mismatched_preferences.append("Preferred Domain")
     else:
         not_assessed.append("Preferred Domain")
-        if not prefs or not prefs.preferred_domains:
+        if not evidence.preferred_domains:
             limitations.append("Candidate has not specified preferred domains.")
         else:
             limitations.append("Opportunity does not specify a domain.")
@@ -348,3 +358,25 @@ async def calculate_opportunity_match(
             limitations=limitations
         )
     )
+
+
+async def calculate_opportunity_match(
+    db: AsyncSession,
+    profile_id: uuid.UUID,
+    opportunity_id: uuid.UUID
+) -> OpportunityMatchResponse:
+    opp_stmt = (
+        select(Opportunity)
+        .options(
+            selectinload(Opportunity.skills).selectinload(OpportunitySkill.skill)
+        )
+        .where(Opportunity.id == opportunity_id)
+    )
+    opp_res = await db.execute(opp_stmt)
+    opportunity = opp_res.scalar_one_or_none()
+    
+    if not opportunity:
+        raise ValueError("Opportunity not found")
+
+    evidence = await get_candidate_evidence(db, profile_id)
+    return calculate_match_with_evidence(opportunity, evidence)

@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import get_current_profile, get_current_user, get_db
 from app.models.opportunity import Opportunity, OpportunitySkill, SavedOpportunity
+from app.schemas.matching import OpportunityMatchItem, PaginatedOpportunityMatchResponse
 from app.schemas.opportunity import PaginatedSavedOpportunityResponse
 from app.schemas.profile import (
     CareerPreferenceResponse,
@@ -36,6 +37,7 @@ from app.schemas.profile import (
 from app.services import profile as profile_service
 from app.services import profile_picture as picture_service
 from app.services import resume as resume_service
+from app.services.matching import calculate_match_with_evidence, get_candidate_evidence
 from app.services.opportunity import expire_overdue_opportunities
 from app.services.resume_analyzer import (
     ResumeAnalyzerError,
@@ -581,3 +583,77 @@ async def get_resume_analysis_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+
+@router.get("/opportunity-matches", response_model=PaginatedOpportunityMatchResponse)
+async def get_opportunity_matches(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_profile),
+):
+    """
+    Get ranked opportunity matches for the current user.
+    """
+    import math
+    await expire_overdue_opportunities(db)
+    
+    # 1. Load candidate evidence once
+    evidence = await get_candidate_evidence(db, current_user.id)
+    
+    # 2. Get all eligible Published opportunities
+    stmt = select(Opportunity).where(Opportunity.status == "Published")
+    stmt = stmt.options(selectinload(Opportunity.skills).selectinload(OpportunitySkill.skill))
+    res = await db.execute(stmt)
+    opportunities = res.scalars().all()
+    
+    # 3. Calculate matches deterministically
+    match_items = []
+    for opp in opportunities:
+        match_result = calculate_match_with_evidence(opp, evidence)
+        
+        # Compose OpportunityListItem
+        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+        opp_item = {
+            "id": opp.id,
+            "title": opp.title,
+            "company_name": opp.company_name,
+            "company_logo_url": opp.company_logo_url,
+            "opportunity_type": opp.opportunity_type,
+            "work_model": opp.work_model,
+            "locations": opp.locations,
+            "domain": opp.domain,
+            "deadline": opp.deadline,
+            "status": opp.status,
+            "created_at": opp.created_at,
+            "skills": skills_resp
+        }
+        
+        match_items.append(
+            OpportunityMatchItem(
+                opportunity=opp_item,
+                match=match_result
+            )
+        )
+        
+    # 4. Sort results
+    def sort_key(item: OpportunityMatchItem):
+        score = item.match.score if item.match.score is not None else -1
+        timestamp = item.opportunity.created_at.timestamp()
+        return (score, timestamp, str(item.opportunity.id))
+
+    match_items.sort(key=sort_key, reverse=True)
+    
+    # 5. Apply pagination
+    total = len(match_items)
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
+    start = (page - 1) * page_size
+    end = start + page_size
+    items = match_items[start:end]
+    
+    return PaginatedOpportunityMatchResponse(
+        items=items,
+        page=page,
+        page_size=page_size,
+        total=total,
+        total_pages=total_pages
+    )

@@ -10,14 +10,15 @@ from sqlalchemy.orm import selectinload
 from app.core.dependencies import get_current_profile, get_db
 from app.models.opportunity import Opportunity, OpportunitySkill, SavedOpportunity
 from app.models.profile import Profile, Skill
+from app.schemas.matching import OpportunityMatchResponse
 from app.schemas.opportunity import (
     OpportunityListItem,
     OpportunityResponse,
     PaginatedOpportunityResponse,
     SavedOpportunityState,
 )
+from app.services.matching import calculate_opportunity_match
 from app.services.opportunity import expire_overdue_opportunities
-
 
 router = APIRouter(
     prefix="/api/v1/opportunities",
@@ -246,3 +247,31 @@ async def check_saved_state(
     saved_opp = result.scalar_one_or_none()
     
     return SavedOpportunityState(saved=saved_opp is not None)
+
+@router.get("/{opportunity_id}/match", response_model=OpportunityMatchResponse)
+async def get_opportunity_match(
+    opportunity_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: Profile = Depends(get_current_profile),
+):
+    """
+    Get explainable match score and analysis for an opportunity.
+    """
+    opp_stmt = select(Opportunity).where(Opportunity.id == opportunity_id)
+    res = await db.execute(opp_stmt)
+    opp = res.scalar_one_or_none()
+    
+    if not opp or opp.status != "Published":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Opportunity not found or not available"
+        )
+        
+    try:
+        match_result = await calculate_opportunity_match(db, current_user.id, opportunity_id)
+        return match_result
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
