@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.routers.admin_ingestion import router as admin_ingestion_router
 from app.routers.admin_opportunity import router as admin_opportunity_router
 from app.routers.opportunity import router as opportunity_router
 from app.routers.profile import router as profile_router
@@ -26,6 +27,7 @@ app.include_router(profile_router)
 app.include_router(skills_router)
 app.include_router(opportunity_router)
 app.include_router(admin_opportunity_router)
+app.include_router(admin_ingestion_router)
 
 
 @app.get("/")

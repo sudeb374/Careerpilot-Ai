@@ -35,6 +35,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/opportunities" className="text-sm font-medium text-foreground hover:text-primary">
               Opportunities
             </Link>
+            <Link href="/admin/ingestion" className="text-sm font-medium text-foreground hover:text-primary">
+              Job Ingestion
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-4">
