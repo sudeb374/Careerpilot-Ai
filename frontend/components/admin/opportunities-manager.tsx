@@ -140,6 +140,9 @@ export function OpportunitiesManager() {
 
   const getQualityWarnings = (opp: OpportunityData) => {
     const warnings = [];
+    if (opp.eligibility && (opp.eligibility.toLowerCase().includes("classification conflict") || opp.eligibility.toLowerCase().includes("employment-type conflict"))) {
+      warnings.push("Employment-type conflict flagged for review");
+    }
     if (!opp.application_url) warnings.push("Missing application URL");
     if (!opp.description) warnings.push("Missing description");
     if (!opp.skills || opp.skills.length === 0) warnings.push("Missing required skills");

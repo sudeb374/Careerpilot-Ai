@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, X, Search } from "lucide-react";
+import { Loader2, X, Search, AlertTriangle } from "lucide-react";
 
 interface OpportunityFormDialogProps {
   open: boolean;
@@ -185,10 +185,21 @@ export function OpportunityFormDialog({ open, onOpenChange, opportunityToEdit, o
       payload.deadline = payload.deadline ? new Date(payload.deadline).toISOString() : null;
       payload.required_skill_ids = selectedSkills.map(s => s.id);
 
-      if (payload.status === "Published" && payload.deadline) {
-        const deadlineDate = new Date(payload.deadline);
-        if (deadlineDate < new Date()) {
-          throw new Error("Cannot publish an opportunity with a past deadline. Please set a future deadline or change status to Draft.");
+      if (payload.status === "Published") {
+        if (payload.deadline) {
+          const deadlineDate = new Date(payload.deadline);
+          if (deadlineDate < new Date()) {
+            throw new Error("Cannot publish an opportunity with a past deadline. Please set a future deadline or change status to Draft.");
+          }
+        }
+        if (payload.opportunity_type === "Internship" && payload.eligibility && (payload.eligibility.toLowerCase().includes("classification conflict") || payload.eligibility.toLowerCase().includes("employment-type conflict"))) {
+          throw new Error("Cannot publish opportunity as an Internship with an unresolved employment-type conflict. Please review and correct the opportunity type (e.g. to Full-Time) or clear the conflict note from Eligibility notes.");
+        }
+        if (payload.application_url && !/^https?:\/\//i.test(payload.application_url.trim())) {
+          throw new Error("Application URL must be a valid HTTP or HTTPS URL.");
+        }
+        if (formData.source_name && formData.source_name.toLowerCase() !== "internal" && (!payload.application_url || !payload.application_url.trim())) {
+          throw new Error("An application URL is required to publish an imported opportunity.");
         }
       }
 
@@ -244,6 +255,16 @@ export function OpportunityFormDialog({ open, onOpenChange, opportunityToEdit, o
         {error && (
           <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm mb-4">
             {error}
+          </div>
+        )}
+
+        {formData.eligibility && (formData.eligibility.toLowerCase().includes("classification conflict") || formData.eligibility.toLowerCase().includes("employment-type conflict")) && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg flex items-start gap-3 mb-4">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-sm">Employment Type Conflict Flagged</h4>
+              <p className="text-xs mt-1">This opportunity was flagged during ingestion because the job title includes &apos;Intern&apos;, but the provider reported a &apos;Full-Time&apos; employment type. Review and correct the Opportunity Type (e.g. change to Full-Time) or clear the conflict note from Eligibility notes before publishing as a confirmed internship.</p>
+            </div>
           </div>
         )}
 

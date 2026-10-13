@@ -93,6 +93,12 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
     }
   };
 
+  const isValidExternalUrl = (url: string | null | undefined): boolean => {
+    if (!url || typeof url !== "string") return false;
+    const trimmed = url.trim();
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://");
+  };
+
   const formatCompensation = (min: number | null, max: number | null, currency: string | null) => {
     if (min === null && max === null) return null;
     const curr = currency ? `${currency} ` : "";
@@ -258,7 +264,7 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                   opportunityId={opportunity.id} 
                   className="flex-1 h-11 border-[#1B5E3B] text-[#1B5E3B] hover:bg-[#F6FAF7] bg-white font-semibold"
                 />
-                {opportunity.application_url ? (
+                {isValidExternalUrl(opportunity.application_url) ? (
                   <a 
                     href={opportunity.application_url} 
                     target="_blank" 
@@ -271,7 +277,7 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                     </Button>
                   </a>
                 ) : (
-                  <Button size="lg" disabled className="flex-1 font-bold">
+                  <Button size="lg" disabled className="flex-1 font-bold" aria-disabled="true">
                     Unavailable
                   </Button>
                 )}
@@ -389,7 +395,7 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                 <span className="block font-semibold text-gray-900">{opportunity.company_name}</span>
               </div>
               
-              {opportunity.company_website && (
+              {isValidExternalUrl(opportunity.company_website) && (
                 <div>
                   <a 
                     href={opportunity.company_website} 
@@ -412,7 +418,7 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                 </div>
               )}
 
-              {opportunity.source_url && (
+              {isValidExternalUrl(opportunity.source_url) && (
                 <div>
                   <a 
                     href={opportunity.source_url} 

@@ -141,11 +141,12 @@ async def calculate_match_with_evidence(
         total_assessable_max += max_skill_pts
         matched_count = 0
         for os in opp_skills:
+            skill_name = os.skill.name if os.skill else "Unknown Skill"
             if str(os.skill_id) in evidence.candidate_skill_ids:
                 matched_count += 1
-                matched_skills.append(os.skill.name)
+                matched_skills.append(skill_name)
             else:
-                missing_skills.append(os.skill.name)
+                missing_skills.append(skill_name)
         
         awarded_skill_pts = (matched_count / len(opp_skills)) * max_skill_pts
         total_awarded += awarded_skill_pts

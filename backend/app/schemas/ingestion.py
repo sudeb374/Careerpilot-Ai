@@ -46,6 +46,7 @@ class JobPreviewItem(BaseModel):
     opportunity_type: str = "Internship"
     work_model: str = "On-site"
     locations: list[str] | None = None
+    eligibility: str | None = None
     application_url: str | None = None
     publisher: str | None = None
     posted_at: datetime | None = None

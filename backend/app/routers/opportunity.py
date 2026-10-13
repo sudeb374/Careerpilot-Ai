@@ -104,7 +104,7 @@ async def list_opportunities(
     # Format skills for response
     items = []
     for opp in opportunities:
-        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills if os.skill is not None]
         opp_dict = {
             "id": opp.id,
             "title": opp.title,
@@ -155,7 +155,7 @@ async def get_opportunity(
             detail="Opportunity not found or not published"
         )
         
-    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills if os.skill is not None]
     opp_dict = {
         c.name: getattr(opp, c.name) for c in opp.__table__.columns
     }

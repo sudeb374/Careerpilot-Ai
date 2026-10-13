@@ -612,7 +612,7 @@ async def get_opportunity_matches(
         match_result = await calculate_match_with_evidence(opp, evidence)
         
         # Compose OpportunityListItem
-        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills if os.skill is not None]
         opp_item = {
             "id": opp.id,
             "title": opp.title,

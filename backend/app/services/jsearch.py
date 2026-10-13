@@ -707,6 +707,11 @@ async def import_jsearch_jobs(
             )
             continue
 
+        eligibility_val = getattr(item, "eligibility", None)
+        if item.classification_conflict or any("classification conflict" in str(w).lower() for w in item.warnings):
+            conflict_tag = "[Classification Conflict: Job title includes 'Intern', but provider reports 'FULLTIME' employment type. Flagged for review.]"
+            eligibility_val = f"{conflict_tag} {eligibility_val}".strip() if eligibility_val else conflict_tag
+
         # Build Opportunity instance — always Draft, strictly respecting PostgreSQL column boundaries
         opportunity = Opportunity(
             title=item.title[:255] if item.title else "Untitled Opportunity",
@@ -717,6 +722,7 @@ async def import_jsearch_jobs(
             opportunity_type=item.opportunity_type if item.opportunity_type in ("Internship", "Full-Time") else "Internship",
             work_model=item.work_model if item.work_model in ("Remote", "Hybrid", "On-site") else "On-site",
             locations=item.locations,
+            eligibility=eligibility_val,
             application_url=item.application_url[:500] if item.application_url else None,
             deadline=item.deadline,
             salary_min=item.salary_min,

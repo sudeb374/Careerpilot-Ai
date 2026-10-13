@@ -17,5 +17,6 @@ async def expire_overdue_opportunities(db: AsyncSession):
         .values(status="Expired")
     )
     result = await db.execute(stmt)
-    if result.rowcount > 0:
+    rowcount = getattr(result, "rowcount", 0)
+    if isinstance(rowcount, int) and rowcount > 0:
         await db.commit()

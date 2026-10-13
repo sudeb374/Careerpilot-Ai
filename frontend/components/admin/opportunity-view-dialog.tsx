@@ -54,6 +54,12 @@ export function OpportunityViewDialog({ open, onOpenChange, opportunityId }: Opp
     fetchOpportunity();
   }, [open, opportunityId]);
 
+  const isValidExternalUrl = (url: string | null | undefined): boolean => {
+    if (!url || typeof url !== "string") return false;
+    const trimmed = url.trim();
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://");
+  };
+
   const formatCurrency = (val: number | null, currency: string | null) => {
     if (val === null || val === undefined) return null;
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD', maximumFractionDigits: 0 }).format(val);
@@ -105,6 +111,9 @@ export function OpportunityViewDialog({ open, onOpenChange, opportunityId }: Opp
             
             {(() => {
               const warnings = [];
+              if (opportunity.eligibility && (opportunity.eligibility.toLowerCase().includes("classification conflict") || opportunity.eligibility.toLowerCase().includes("employment-type conflict"))) {
+                warnings.push("Employment-type conflict flagged: title indicates Intern but provider reported Full-Time. Review required.");
+              }
               if (!opportunity.application_url) warnings.push("Missing application URL");
               if (!opportunity.description) warnings.push("Missing description");
               if (!opportunity.skills || opportunity.skills.length === 0) warnings.push("Missing required skills");
@@ -247,23 +256,23 @@ export function OpportunityViewDialog({ open, onOpenChange, opportunityId }: Opp
                   {opportunity.source_name} 
                   {opportunity.external_id && <span className="text-muted-foreground text-xs ml-2">(ID: {opportunity.external_id})</span>}
                 </div>
-                {opportunity.source_url && (
+                {isValidExternalUrl(opportunity.source_url) && (
                   <div>
-                    <a href={opportunity.source_url} target="_blank" rel="noreferrer" className="flex items-center text-blue-600 hover:underline">
+                    <a href={opportunity.source_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:underline">
                       Original Posting <ExternalLink className="ml-1 h-3 w-3" />
                     </a>
                   </div>
                 )}
-                {opportunity.company_website && (
+                {isValidExternalUrl(opportunity.company_website) && (
                   <div>
-                    <a href={opportunity.company_website} target="_blank" rel="noreferrer" className="flex items-center text-blue-600 hover:underline">
+                    <a href={opportunity.company_website} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:underline">
                       Company Website <ExternalLink className="ml-1 h-3 w-3" />
                     </a>
                   </div>
                 )}
-                {opportunity.application_url && (
+                {isValidExternalUrl(opportunity.application_url) && (
                   <div>
-                    <a href={opportunity.application_url} target="_blank" rel="noreferrer" className="flex items-center text-blue-600 hover:underline font-semibold">
+                    <a href={opportunity.application_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:underline font-semibold">
                       Apply Link <ExternalLink className="ml-1 h-3 w-3" />
                     </a>
                   </div>

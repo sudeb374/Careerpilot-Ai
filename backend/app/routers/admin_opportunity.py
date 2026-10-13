@@ -86,7 +86,7 @@ async def admin_list_opportunities(
 
     items = []
     for opp in opportunities:
-        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+        skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills if os.skill is not None]
         opp_dict = {
             "id": opp.id,
             "title": opp.title,
@@ -121,8 +121,24 @@ async def create_opportunity(
     """
     Create a new opportunity as an admin.
     """
-    if data.status == "Published" and data.deadline and data.deadline < datetime.now(timezone.utc):
-        raise HTTPException(status_code=422, detail="Cannot publish an opportunity with a past deadline.")
+    if data.status == "Published":
+        if data.deadline and data.deadline < datetime.now(timezone.utc):
+            raise HTTPException(status_code=422, detail="Cannot publish an opportunity with a past deadline.")
+        if data.opportunity_type == "Internship" and data.eligibility and "classification conflict" in data.eligibility.lower():
+            raise HTTPException(
+                status_code=422,
+                detail="Cannot publish opportunity as an Internship with an unresolved employment-type conflict. Please review and correct the opportunity type or resolve the conflict note."
+            )
+        if data.source_name and data.source_name.lower() != "internal" and (not data.application_url or not str(data.application_url).strip()):
+            raise HTTPException(
+                status_code=422,
+                detail="An application URL is required to publish an imported opportunity."
+            )
+        if data.application_url and not (str(data.application_url).startswith("http://") or str(data.application_url).startswith("https://")):
+            raise HTTPException(
+                status_code=422,
+                detail="Application URL must be a valid HTTP or HTTPS URL."
+            )
 
     opp_dict = data.model_dump(exclude={"required_skill_ids"})
     opp_dict["created_by_profile_id"] = admin_user.id
@@ -156,7 +172,7 @@ async def create_opportunity(
     result = await db.execute(stmt)
     opp_loaded = result.scalar_one()
 
-    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp_loaded.skills]
+    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp_loaded.skills if os.skill is not None]
     resp_dict = {c.name: getattr(opp_loaded, c.name) for c in opp_loaded.__table__.columns}
     resp_dict["skills"] = skills_resp
     return OpportunityResponse(**resp_dict)
@@ -182,7 +198,7 @@ async def admin_get_opportunity(
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
         
-    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills]
+    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp.skills if os.skill is not None]
     opp_dict = {c.name: getattr(opp, c.name) for c in opp.__table__.columns}
     opp_dict["skills"] = skills_resp
     return OpportunityResponse(**opp_dict)
@@ -211,8 +227,29 @@ async def update_opportunity(
     
     new_status = update_data.get("status", opp.status)
     new_deadline = update_data.get("deadline", opp.deadline)
-    if new_status == "Published" and new_deadline and new_deadline < datetime.now(timezone.utc):
-        raise HTTPException(status_code=422, detail="Cannot publish an opportunity with a past deadline.")
+    new_type = update_data.get("opportunity_type", opp.opportunity_type)
+    new_eligibility = update_data.get("eligibility", opp.eligibility)
+    new_source = update_data.get("source_name", opp.source_name)
+    new_app_url = update_data.get("application_url", opp.application_url)
+
+    if new_status == "Published":
+        if new_deadline and new_deadline < datetime.now(timezone.utc):
+            raise HTTPException(status_code=422, detail="Cannot publish an opportunity with a past deadline.")
+        if new_type == "Internship" and new_eligibility and "classification conflict" in str(new_eligibility).lower():
+            raise HTTPException(
+                status_code=422,
+                detail="Cannot publish opportunity as an Internship with an unresolved employment-type conflict. Please review and correct the opportunity type or resolve the conflict note."
+            )
+        if new_source and str(new_source).lower() != "internal" and (not new_app_url or not str(new_app_url).strip()):
+            raise HTTPException(
+                status_code=422,
+                detail="An application URL is required to publish an imported opportunity."
+            )
+        if new_app_url and not (str(new_app_url).startswith("http://") or str(new_app_url).startswith("https://")):
+            raise HTTPException(
+                status_code=422,
+                detail="Application URL must be a valid HTTP or HTTPS URL."
+            )
 
     # Validation logic for min/max relationships if only one is updated
     new_exp_min = update_data.get("required_experience_min", opp.required_experience_min)
@@ -262,7 +299,7 @@ async def update_opportunity(
     result = await db.execute(stmt)
     opp_loaded = result.scalar_one()
 
-    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp_loaded.skills]
+    skills_resp = [{"id": os.skill.id, "name": os.skill.name} for os in opp_loaded.skills if os.skill is not None]
     resp_dict = {c.name: getattr(opp_loaded, c.name) for c in opp_loaded.__table__.columns}
     resp_dict["skills"] = skills_resp
     return OpportunityResponse(**resp_dict)
