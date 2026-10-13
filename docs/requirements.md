@@ -101,6 +101,15 @@ Scraping will only be reconsidered if an authorized provider explicitly allows a
   - Audit trail of verified candidate evidence cited, in-browser editable preview, copy-to-clipboard, and text export.
   - Validation guardrails preventing empty profile generation or unpublished opportunity access, with zero automatic application submission.
 
+- **Phase 7.3 (AI-Powered Application Question Assistance)**: (**Complete**)
+  - Evidence-based answer generation for screening and application questions (e.g., Why hire you, project deep-dive, role interest, strengths, skills match).
+  - Works with a selected published opportunity or in general application mode (`opportunity_id=None`).
+  - Answer style options (Professional, Concise, Detailed), optional custom word limit, and specific student focus note.
+  - Primary provider: Configurable Gemini API (`gemini-2.5-flash`) with strict anti-hallucination prompting and untrusted input isolation.
+  - Deterministic grounded fallback engine when Gemini is unconfigured, rate-limited, timed out, or unavailable, with transparent provider disclosure.
+  - Factual evidence audit trail distinguishing verified profile skills from resume-extracted skills, and explicitly flagging unassumed personal facts (visa/authorization/salary).
+  - In-browser editable textarea draft, 1-click clipboard copy, .txt download, and draft review disclaimers.
+
 ## 6. AI Match Score Disclaimer
 
 AI-generated match scores (e.g., opportunity-to-profile relevance) are **heuristic recommendations** based on semantic similarity, skill overlap, and profile metadata. They must **not** be represented or interpreted as:

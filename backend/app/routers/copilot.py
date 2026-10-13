@@ -5,12 +5,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_profile, get_db
 from app.models.profile import Profile
+from app.schemas.application_assistant import (
+    ApplicationQuestionRequest,
+    ApplicationQuestionResponse,
+    SuggestedQuestionsResponse,
+)
 from app.schemas.cover_letter import (
     CoverLetterGenerateRequest,
     CoverLetterGenerateResponse,
     OpportunityContextForLetter,
 )
 from app.schemas.skill_gap import SkillGapRoadmapResponse
+from app.services.application_assistant import (
+    generate_application_answer,
+    get_suggested_application_questions,
+)
 from app.services.cover_letter import (
     generate_cover_letter,
     get_opportunity_context_for_candidate,
@@ -103,4 +112,52 @@ async def generate_cover_letter_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Cover letter generation encountered an unexpected error: {str(e)}",
+        )
+
+
+@router.get(
+    "/application-assistant/suggested-questions",
+    response_model=SuggestedQuestionsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Suggested Application Questions",
+)
+async def get_suggested_questions_endpoint(
+    current_user: Profile = Depends(get_current_profile),
+):
+    """
+    Fetch curated standard job application questions with category tags.
+    """
+    return get_suggested_application_questions()
+
+
+@router.post(
+    "/application-assistant/generate",
+    response_model=ApplicationQuestionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate Application Question Answer",
+)
+async def generate_application_answer_endpoint(
+    request: ApplicationQuestionRequest,
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Generate a tailored answer for an application question grounded strictly in candidate facts,
+    with Gemini AI assistance or deterministic fallback.
+    """
+    try:
+        return await generate_application_answer(
+            db=db,
+            profile_id=current_user.id,
+            request=request,
+        )
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower() or "not published" in err_msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Application assistant encountered an unexpected error: {str(e)}",
         )

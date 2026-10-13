@@ -12,6 +12,7 @@ import {
   ExternalLink,
   AlertCircle,
   FileEdit,
+  Sparkles,
   Globe,
   Link as LinkIcon
 } from "lucide-react";
@@ -289,6 +290,13 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                 <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
                   <FileEdit className="w-4 h-4" />
                   Draft Tailored Cover Letter
+                </Button>
+              </Link>
+
+              <Link href={`/application-assistant?opportunity_id=${opportunity.id}`} className="w-full">
+                <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Answer Application Questions
                 </Button>
               </Link>
               
