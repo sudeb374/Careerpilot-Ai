@@ -36,9 +36,30 @@ BeautifulSoup or web-based scraping will only be reconsidered if:
 | **6.1** | Authorized API Ingestion | RapidAPI JSearch search-v2 integration, preview & import schemas, savepoint transactions, canonical skill matching, external ID sanitization. | **Complete** |
 | **6.2** | Discovery, Matching & Apply Workflow | Admin publish safeguards, employment-type conflict gating, student discovery filters, safe external URL navigation, applicant matching data isolation. | **Complete** |
 | **6.3** | Authorized RSS Ingestion | Structured RSS 2.0 & Atom feed parsing (stdlib XML), SSRF protection, shared normalization, cross-source deduplication, admin review dialogs. | **Complete** |
-| **6.4** | Scheduled Refresh, Expiry & Fallback Uploads | Automated background synchronization, past-deadline auto-expiration, CSV/JSON bulk upload fallback for manual partnerships. | **Planned** |
+| **6.4** | Scheduled Refresh, Expiry & Fallback Uploads | Automated background synchronization, past-deadline auto-expiration, CSV/JSON bulk upload fallback for manual partnerships. | **Complete** |
 
-> **Note on Phase 6 Completion:** Phase 6 is not considered complete until all remaining required capabilities across Phase 6.4 (Scheduled Refresh, Expiration & Fallback Uploads) are implemented, tested, and documented, or the documented scope decision has been formally approved.
+> **Phase 6 Completion Status:** All Phase 6 sub-phases (6.1, 6.2, 6.3, and 6.4) are fully implemented, verified with automated test suites, and pushed to `main`. Website scraping via BeautifulSoup/Selenium was intentionally deferred per architectural agreement. Phase 6 is complete.
+
+---
+
+### 3.1 Phase 6.4 Implementation Architecture
+
+1. **Scheduled API/RSS Refresh (`app.services.scheduled_refresh`):**
+   - **Concurrency Control:** Utilizes an in-process lock (`asyncio.Lock()`) to prevent overlapping executions and API rate-limit exhaustion.
+   - **Safe Updates:** When refreshing existing opportunities matching `(source_name, external_id)`, updates only source-controlled fields (`deadline`, `application_url`, `updated_at`). Strictly preserves admin titles, employer names, reviewed classifications, and publication status (`Published` or `Closed` never revert to `Draft`).
+   - **CLI Runner (`app.cli.scheduled_refresh`):** Standalone CLI command suitable for single-process schedulers, cron jobs, or Cloud Scheduler tasks, avoiding duplicate scheduler instances across multiple FastAPI workers.
+   - **Admin Trigger:** `POST /api/v1/admin/ingestion/refresh/trigger` and `GET /api/v1/admin/ingestion/refresh/status`.
+
+2. **Deadline-Based Expiration (`app.services.opportunity.expire_overdue_opportunities`):**
+   - **Targeted Transition:** Only opportunities with `status == "Published"` whose `deadline < now` transition to `status = "Expired"`.
+   - **Draft & Closed Invariants:** Opportunities in `Draft`, `Closed`, or with `deadline IS NULL` are never modified.
+   - **Deterministic & Idempotent:** Supports explicit UTC/timezone-aware comparison timestamps for deterministic testing and idempotent repeated execution.
+   - **Student Discovery & Matching:** Expired opportunities are excluded from student discovery and recommendation queries.
+
+3. **Admin CSV/JSON Fallback Bulk Uploads (`app.services.bulk_upload`):**
+   - **Strict Input Validation:** Enforces a 5 MB file size bound and 500 row limit. Supports UTF-8 (and `utf-8-sig` BOM).
+   - **Security Protections:** Never executes outbound network calls against uploaded URLs; sanitizes text and completely strips `<script>` and `<style>` blocks; validates URL schemes (`http://` and `https://` only, rejecting `javascript:` or `file:`).
+   - **Transactional Savepoints:** Each row is imported inside an isolated nested savepoint (`db.begin_nested()`) with status `Draft`, preventing single-row failures from aborting the entire batch.
 
 ---
 

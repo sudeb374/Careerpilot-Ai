@@ -48,6 +48,28 @@ class Settings(BaseSettings):
     jsearch_timeout_seconds: float = 30.0
     jsearch_connect_timeout_seconds: float = 10.0
 
+    # Scheduled Refresh (Phase 6.4)
+    scheduled_refresh_enabled: bool = False
+    scheduled_refresh_interval_minutes: int = 360
+    scheduled_refresh_jsearch_enabled: bool = True
+    scheduled_refresh_jsearch_query: str = "software engineer intern"
+    scheduled_refresh_jsearch_max_pages: int = 1
+    scheduled_refresh_rss_enabled: bool = True
+    scheduled_refresh_rss_feed_urls: str = "https://weworkremotely.com/categories/remote-programming-jobs.rss"
+    scheduled_refresh_rss_max_items: int = 15
+    scheduled_refresh_auto_expire: bool = True
+
+    @property
+    def scheduled_refresh_rss_feed_list(self) -> list[str]:
+        """Parsed list of authorized RSS feeds for scheduled refresh."""
+        if not self.scheduled_refresh_rss_feed_urls:
+            return []
+        return [
+            url.strip()
+            for url in self.scheduled_refresh_rss_feed_urls.split(",")
+            if url.strip()
+        ]
+
     @property
     def clean_jsearch_api_host(self) -> str:
         """Sanitized JSearch host header value (e.g. jsearch.p.rapidapi.com)."""

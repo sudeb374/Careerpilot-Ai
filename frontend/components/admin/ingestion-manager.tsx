@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,10 @@ import {
   Database,
   Sparkles,
   Rss,
+  UploadCloud,
+  FileText,
+  RefreshCw,
+  Clock,
 } from "lucide-react";
 
 export interface MatchedSkill {
@@ -138,7 +142,7 @@ const RSS_PRESETS = [
 ];
 
 export function IngestionManager() {
-  const [activeTab, setActiveTab] = useState<"jsearch" | "rss">("jsearch");
+  const [activeTab, setActiveTab] = useState<"jsearch" | "rss" | "bulk">("jsearch");
 
   // JSearch state
   const [query, setQuery] = useState("Software Engineer Intern");
@@ -152,6 +156,39 @@ export function IngestionManager() {
   const [rssMaxItems, setRssMaxItems] = useState(20);
   const [rssKeywords, setRssKeywords] = useState("");
   const [feedMeta, setFeedMeta] = useState<{ title?: string | null; link?: string | null; description?: string | null } | null>(null);
+
+  // Bulk Upload state (Phase 6.4)
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [bulkMeta, setBulkMeta] = useState<{
+    filename?: string;
+    total_rows?: number;
+    valid_count?: number;
+    invalid_count?: number;
+    duplicate_count?: number;
+  } | null>(null);
+
+  // Scheduled Refresh & Expiration state (Phase 6.4)
+  const [refreshStatus, setRefreshStatus] = useState<{
+    enabled: boolean;
+    interval_minutes: number;
+    jsearch_enabled: boolean;
+    jsearch_query: string;
+    rss_enabled: boolean;
+    auto_expire: boolean;
+    last_summary?: {
+      last_run_at?: string | null;
+      status: string;
+      is_running: boolean;
+      total_inserted: number;
+      total_updated: number;
+      total_duplicates: number;
+      total_expired: number;
+      duration_seconds: number;
+      errors?: string[];
+    };
+  } | null>(null);
+  const [triggeringRefresh, setTriggeringRefresh] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -302,6 +339,129 @@ export function IngestionManager() {
     }
   };
 
+  const loadRefreshStatus = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch(`${API_URL}/api/v1/admin/ingestion/refresh/status`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRefreshStatus(data);
+      }
+    } catch {
+      // Ignore background load error
+    }
+  }, [API_URL]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function init() {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session || ignore) return;
+        const res = await fetch(`${API_URL}/api/v1/admin/ingestion/refresh/status`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok && !ignore) {
+          const data = await res.json();
+          setRefreshStatus(data);
+        }
+      } catch {
+        // Ignore background load error
+      }
+    }
+    init();
+    return () => {
+      ignore = true;
+    };
+  }, [API_URL]);
+
+  const handleTriggerRefresh = async () => {
+    setTriggeringRefresh(true);
+    setRefreshMessage(null);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Administrator session required.");
+
+      const res = await fetch(`${API_URL}/api/v1/admin/ingestion/refresh/trigger?force=true`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Refresh failed");
+      }
+      setRefreshMessage(`Sync complete: ${data.summary?.total_inserted ?? 0} new, ${data.summary?.total_updated ?? 0} updated, ${data.summary?.total_expired ?? 0} expired.`);
+      await loadRefreshStatus();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to trigger scheduled refresh.");
+      setErrorType("generic");
+    } finally {
+      setTriggeringRefresh(false);
+    }
+  };
+
+  const handleBulkPreview = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!bulkFile) return;
+
+    setLoading(true);
+    setError(null);
+    setErrorType(null);
+    setImportResult(null);
+
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("You must be logged in as an administrator to preview bulk upload.");
+
+      const formData = new FormData();
+      formData.append("file", bulkFile);
+
+      const res = await fetch(`${API_URL}/api/v1/admin/ingestion/bulk-upload/preview`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.detail || `Upload preview failed with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      setJobs(data.jobs || []);
+      setSummary(data.summary || null);
+      setBulkMeta({
+        filename: data.filename,
+        total_rows: data.total_rows,
+        valid_count: data.valid_count,
+        invalid_count: data.invalid_count,
+        duplicate_count: data.duplicate_count,
+      });
+
+      const autoSelected = new Set<string>();
+      (data.jobs || []).forEach((j: JobPreview) => {
+        if (!j.is_duplicate && (!j.errors || j.errors.length === 0)) {
+          autoSelected.add(j.job_id);
+        }
+      });
+      setSelectedJobIds(autoSelected);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to preview uploaded file.");
+      setErrorType("generic");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleSelectJob = (jobId: string) => {
     const next = new Set(selectedJobIds);
     if (next.has(jobId)) {
@@ -354,7 +514,9 @@ export function IngestionManager() {
 
       const selectedJobsList = jobs.filter((j) => selectedJobIds.has(j.job_id));
 
-      const importEndpoint = activeTab === "rss"
+      const importEndpoint = activeTab === "bulk"
+        ? `${API_URL}/api/v1/admin/ingestion/bulk-upload/import`
+        : activeTab === "rss"
         ? `${API_URL}/api/v1/admin/ingestion/rss/import`
         : `${API_URL}/api/v1/admin/ingestion/jsearch/import`;
 
@@ -430,6 +592,7 @@ export function IngestionManager() {
             setSummary(null);
             setError(null);
             setFeedMeta(null);
+            setBulkMeta(null);
           }}
           className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === "jsearch"
@@ -448,6 +611,7 @@ export function IngestionManager() {
             setSummary(null);
             setError(null);
             setFeedMeta(null);
+            setBulkMeta(null);
           }}
           className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === "rss"
@@ -458,7 +622,85 @@ export function IngestionManager() {
           <Rss className="h-4 w-4" />
           Authorized RSS Feeds (Phase 6.3)
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("bulk");
+            setJobs([]);
+            setSummary(null);
+            setError(null);
+            setFeedMeta(null);
+            setBulkMeta(null);
+          }}
+          className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === "bulk"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <UploadCloud className="h-4 w-4" />
+          Fallback Bulk Upload (Phase 6.4)
+        </button>
       </div>
+
+      {/* Background Scheduled Refresh & Auto-Expiration Status Banner */}
+      {refreshStatus && (
+        <div className="rounded-xl border border-border/80 bg-muted/40 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary mt-0.5">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground text-sm">Automated Refresh &amp; Deadline Expiration (Phase 6.4)</span>
+                <Badge variant={refreshStatus.enabled ? "default" : "secondary"} className="text-xs">
+                  {refreshStatus.enabled ? "Schedule: Enabled" : "Schedule: Standby"}
+                </Badge>
+                {refreshStatus.auto_expire && (
+                  <Badge variant="outline" className="text-xs text-amber-600 dark:text-amber-400 border-amber-500/30">
+                    Auto-Expire Active
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {refreshStatus.last_summary?.last_run_at ? (
+                  <>
+                    Last sync: {new Date(refreshStatus.last_summary.last_run_at).toLocaleString()} ({refreshStatus.last_summary.status}) —{" "}
+                    <strong>{refreshStatus.last_summary.total_inserted}</strong> new,{" "}
+                    <strong>{refreshStatus.last_summary.total_updated}</strong> updated,{" "}
+                    <strong>{refreshStatus.last_summary.total_expired}</strong> expired.
+                  </>
+                ) : (
+                  <>Periodic sync of authorized RSS feeds and JSearch with past-deadline auto-expiration to Closed/Expired.</>
+                )}
+              </p>
+              {refreshMessage && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{refreshMessage}</p>
+              )}
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleTriggerRefresh}
+            disabled={triggeringRefresh || loading}
+            className="shrink-0"
+          >
+            {triggeringRefresh ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Synchronizing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Run Refresh &amp; Expire
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       {activeTab === "jsearch" ? (
         <>
@@ -710,6 +952,85 @@ export function IngestionManager() {
               )}
             </div>
           )}
+        </>
+      )}
+
+      {activeTab === "bulk" && (
+        <>
+          {/* Bulk Upload Info Notice */}
+          <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 mt-0.5">
+                <UploadCloud className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground text-sm">Fallback Bulk Upload (CSV &amp; JSON)</span>
+                  <Badge variant="outline" className="text-xs font-medium border-blue-500/30 text-blue-600 dark:text-blue-400">Phase 6.4</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                  Upload job listings from partner companies, college drives, and manual sources without brittle web scrapers.
+                  Validates file size (max 5 MB, up to 500 rows) and sanitizes HTML. Imported opportunities are saved strictly as <strong>Draft</strong>.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+              <FileText className="h-4 w-4" />
+              <span>.csv or .json (UTF-8)</span>
+            </div>
+          </div>
+
+          {/* Bulk Upload Form */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Select File for Ingestion</CardTitle>
+              <CardDescription>
+                Supported formats: CSV (with header row) or JSON (array of job objects). Required fields: <code>title</code> and <code>company_name</code>.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleBulkPreview} className="space-y-4">
+                <div className="flex flex-col md:flex-row items-center gap-3">
+                  <Input
+                    type="file"
+                    accept=".csv,.json,text/csv,application/json"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setBulkFile(e.target.files[0]);
+                      }
+                    }}
+                    disabled={loading}
+                    className="flex-1 cursor-pointer"
+                  />
+                  <Button type="submit" disabled={loading || !bulkFile} className="w-full md:w-40">
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Validating...
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="mr-2 h-4 w-4" />
+                        Preview File
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* File Metadata Banner */}
+                {bulkMeta && (
+                  <div className="rounded-lg border border-border/70 bg-muted/40 p-3 text-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+                    <div>
+                      <span className="font-semibold text-foreground">{bulkMeta.filename}</span>
+                      <span className="text-muted-foreground ml-2">
+                        — {bulkMeta.total_rows} total rows ({bulkMeta.valid_count} valid, {bulkMeta.invalid_count} invalid, {bulkMeta.duplicate_count} duplicate)
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </form>
+            </CardContent>
+          </Card>
         </>
       )}
 

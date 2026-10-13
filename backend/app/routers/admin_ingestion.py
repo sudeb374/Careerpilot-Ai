@@ -1,24 +1,36 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.dependencies import get_db, require_admin
 from app.models.profile import Profile
 from app.schemas.ingestion import (
+    BulkUploadImportRequest,
+    BulkUploadImportResponse,
+    BulkUploadPreviewResponse,
     JSearchImportRequest,
     JSearchImportResponse,
     JSearchPreviewRequest,
     JSearchPreviewResponse,
+    RefreshStatusResponse,
+    RefreshTriggerResponse,
     RssImportRequest,
     RssImportResponse,
     RssPresetFeed,
     RssPreviewRequest,
     RssPreviewResponse,
 )
+from app.services.bulk_upload import import_bulk_upload_jobs, preview_bulk_upload
 from app.services.jsearch import import_jsearch_jobs, preview_jsearch_ingestion
 from app.services.rss import (
     APPROVED_RSS_PRESETS,
     import_rss_jobs,
     preview_rss_feed,
+)
+from app.services.scheduled_refresh import (
+    execute_scheduled_refresh,
+    get_last_refresh_summary,
+    is_refresh_running,
 )
 
 router = APIRouter(
@@ -146,5 +158,125 @@ async def import_rss(
         selected_job_ids=body.selected_job_ids,
         jobs=body.jobs,
         admin_profile_id=admin_user.id,
+    )
+
+
+# -----------------------------------------------------------------------------
+# Fallback Bulk Upload Endpoints (Phase 6.4)
+# -----------------------------------------------------------------------------
+
+@router.post(
+    "/bulk-upload/preview",
+    response_model=BulkUploadPreviewResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Preview and validate CSV or JSON opportunity bulk upload",
+)
+async def preview_bulk_upload_endpoint(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    admin_user: Profile = Depends(require_admin),  # noqa: B008
+):
+    """
+    Upload a CSV or JSON file containing job listings for validation and preview.
+    Validates format, boundaries (<=5MB, <=500 rows), URL safety, cross-source
+    duplicates, and canonical skills before committing.
+    Admin authorization required.
+    """
+    file_bytes = await file.read()
+    return await preview_bulk_upload(
+        filename=file.filename or "upload.csv",
+        file_bytes=file_bytes,
+        db=db,
+    )
+
+
+@router.post(
+    "/bulk-upload/import",
+    response_model=BulkUploadImportResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Import selected bulk upload opportunities as Draft",
+)
+async def import_bulk_upload_endpoint(
+    body: BulkUploadImportRequest,
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    admin_user: Profile = Depends(require_admin),  # noqa: B008
+):
+    """
+    Import validated preview rows into opportunities database with status='Draft'.
+    Uses transactional savepoints for robust isolated item handling.
+    Admin authorization required.
+    """
+    return await import_bulk_upload_jobs(
+        db=db,
+        selected_job_ids=body.selected_job_ids,
+        jobs=body.jobs,
+        admin_profile_id=admin_user.id,
+    )
+
+
+# -----------------------------------------------------------------------------
+# Scheduled Refresh & Expiration Endpoints (Phase 6.4)
+# -----------------------------------------------------------------------------
+
+@router.get(
+    "/refresh/status",
+    response_model=RefreshStatusResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get scheduled refresh configuration and latest execution summary",
+)
+async def get_refresh_status(
+    admin_user: Profile = Depends(require_admin),  # noqa: B008
+):
+    """
+    Return current scheduled refresh settings and status of the latest refresh run.
+    Admin authorization required.
+    """
+    summary = get_last_refresh_summary()
+    return RefreshStatusResponse(
+        enabled=settings.scheduled_refresh_enabled,
+        interval_minutes=settings.scheduled_refresh_interval_minutes,
+        jsearch_enabled=settings.scheduled_refresh_jsearch_enabled,
+        jsearch_query=settings.scheduled_refresh_jsearch_query,
+        jsearch_max_pages=settings.scheduled_refresh_jsearch_max_pages,
+        rss_enabled=settings.scheduled_refresh_rss_enabled,
+        rss_feed_urls=settings.scheduled_refresh_rss_feed_list,
+        rss_max_items=settings.scheduled_refresh_rss_max_items,
+        auto_expire=settings.scheduled_refresh_auto_expire,
+        last_summary=summary,
+    )
+
+
+@router.post(
+    "/refresh/trigger",
+    response_model=RefreshTriggerResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Trigger an immediate refresh cycle across authorized sources and auto-expire",
+)
+async def trigger_refresh(
+    force: bool = Query(True, description="Force run even if scheduled refresh is disabled in settings"),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    admin_user: Profile = Depends(require_admin),  # noqa: B008
+):
+    """
+    Trigger immediate execution of opportunity refresh from RSS and JSearch,
+    followed by deadline expiration of published opportunities.
+    Admin authorization required.
+    """
+    if is_refresh_running():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A scheduled refresh is already in progress.",
+        )
+
+    summary = await execute_scheduled_refresh(
+        db=db,
+        admin_profile_id=admin_user.id,
+        force=force,
+    )
+
+    return RefreshTriggerResponse(
+        message="Refresh execution completed.",
+        status=summary.status,
+        summary=summary,
     )
 

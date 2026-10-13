@@ -47,6 +47,10 @@ class JobPreviewItem(BaseModel):
     work_model: str = "On-site"
     locations: list[str] | None = None
     eligibility: str | None = None
+    domain: str | None = None
+    required_experience_min: int = 0
+    required_experience_max: int | None = None
+    education_requirements: str | None = None
     application_url: str | None = None
     publisher: str | None = None
     posted_at: datetime | None = None
@@ -137,4 +141,79 @@ class RssImportResponse(BaseModel):
     duplicate_count: int
     review_required_count: int
     details: list[ImportDetailItem]
+
+
+# -----------------------------------------------------------------------------
+# Bulk Upload Fallback Schemas (Phase 6.4)
+# -----------------------------------------------------------------------------
+
+class BulkUploadPreviewResponse(BaseModel):
+    filename: str
+    total_rows: int
+    valid_count: int
+    invalid_count: int
+    duplicate_count: int
+    review_required_count: int
+    jobs: list[JobPreviewItem]
+    summary: PreviewSummary
+
+
+class BulkUploadImportRequest(BaseModel):
+    selected_job_ids: list[str] = Field(..., min_length=1, description="IDs of rows selected for import")
+    jobs: list[JobPreviewItem] = Field(..., min_length=1, description="Previewed job objects")
+
+
+class BulkUploadImportResponse(BaseModel):
+    inserted_count: int
+    skipped_count: int
+    duplicate_count: int
+    review_required_count: int
+    details: list[ImportDetailItem]
+
+
+# -----------------------------------------------------------------------------
+# Scheduled Refresh Schemas (Phase 6.4)
+# -----------------------------------------------------------------------------
+
+class RefreshSourceDetail(BaseModel):
+    source: str
+    target: str
+    status: str  # "success", "skipped", "error"
+    items_found: int = 0
+    items_inserted: int = 0
+    items_updated: int = 0
+    items_duplicate: int = 0
+    error: str | None = None
+
+
+class RefreshSummary(BaseModel):
+    last_run_at: datetime | None = None
+    duration_seconds: float = 0.0
+    status: str = "idle"  # "idle", "running", "success", "partial_failure", "failed"
+    is_running: bool = False
+    total_inserted: int = 0
+    total_updated: int = 0
+    total_duplicates: int = 0
+    total_expired: int = 0
+    sources: list[RefreshSourceDetail] = []
+    errors: list[str] = []
+
+
+class RefreshTriggerResponse(BaseModel):
+    message: str
+    status: str
+    summary: RefreshSummary | None = None
+
+
+class RefreshStatusResponse(BaseModel):
+    enabled: bool
+    interval_minutes: int
+    jsearch_enabled: bool
+    jsearch_query: str
+    jsearch_max_pages: int
+    rss_enabled: bool
+    rss_feed_urls: list[str]
+    rss_max_items: int
+    auto_expire: bool
+    last_summary: RefreshSummary
 

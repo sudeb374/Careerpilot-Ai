@@ -64,13 +64,15 @@ def clean_html_text(text: str | None) -> str:
     """
     if not text or not isinstance(text, str):
         return ""
-    # 1. Strip existing HTML tags
-    stripped = re.sub(r"<[^>]+>", " ", text)
-    # 2. Unescape HTML entities (&amp;, &lt;, &#39;, etc.)
+    # 1. Strip script and style blocks entirely (including contents)
+    no_scripts = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", text, flags=re.IGNORECASE | re.DOTALL)
+    # 2. Strip remaining HTML tags
+    stripped = re.sub(r"<[^>]+>", " ", no_scripts)
+    # 3. Unescape HTML entities (&amp;, &lt;, &#39;, etc.)
     unescaped = html.unescape(stripped)
-    # 3. Strip any newly uncovered HTML tags
+    # 4. Strip any newly uncovered HTML tags
     cleaned = re.sub(r"<[^>]+>", " ", unescaped)
-    # 4. Collapse whitespace
+    # 5. Collapse whitespace
     collapsed = re.sub(r"[ \t]+", " ", cleaned)
     collapsed = re.sub(r"\s+([,.:;!?])", r"\1", collapsed)
     collapsed = re.sub(r"\n\s*\n+", "\n\n", collapsed)
@@ -481,6 +483,33 @@ def normalize_rss_item(
     )
 
 
+async def fetch_feed_content(url: str, timeout: float = 15.0) -> str:
+    """Fetch raw XML content from a validated feed URL with timeout bounds."""
+    headers = {
+        "User-Agent": "CareerPilot-AI-FeedReader/1.0 (+https://careerpilot.ai)",
+        "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True, max_redirects=3) as client:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code >= 400:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Feed provider responded with HTTP error {resp.status_code}.",
+                )
+            return resp.text
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Feed request timed out after 15 seconds. Provider may be unresponsive.",
+        )
+    except httpx.RequestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Network error while connecting to feed provider: {exc!s}",
+        )
+
+
 async def preview_rss_feed(
     feed_url: str,
     max_items: int,
@@ -492,32 +521,7 @@ async def preview_rss_feed(
     Enforces SSRF prevention, cross-source deduplication, and canonical skill matching.
     """
     clean_url = validate_feed_url(feed_url)
-
-    # 1. Safe HTTP GET request with bounded timeout
-    headers = {
-        "User-Agent": "CareerPilot-AI-FeedReader/1.0 (+https://careerpilot.ai)",
-        "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
-    }
-
-    try:
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, max_redirects=3) as client:
-            resp = await client.get(clean_url, headers=headers)
-            if resp.status_code >= 400:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Feed provider responded with HTTP error {resp.status_code}.",
-                )
-            xml_text = resp.text
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail="Feed request timed out after 15 seconds. Provider may be unresponsive.",
-        )
-    except httpx.RequestError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Network error while connecting to feed provider: {exc!s}",
-        )
+    xml_text = await fetch_feed_content(clean_url)
 
     # 2. Parse XML
     feed_meta, raw_items = parse_xml_feed(xml_text)

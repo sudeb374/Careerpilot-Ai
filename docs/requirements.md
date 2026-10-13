@@ -61,7 +61,7 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 | 3     | Opportunity management                                 | Complete    |
 | 4     | Resume intelligence                                    | Complete    |
 | 5     | AI matching engine                                     | Complete    |
-| 6     | Authorized automated ingestion                         | In Progress |
+| 6     | Authorized automated ingestion                         | Complete    |
 | 7     | Career copilot                                         | Planned     |
 | 8     | Application tracker                                    | Planned     |
 | 9     | Testing and evaluation                                 | Planned     |
@@ -74,7 +74,7 @@ See [docs/ingestion-plan.md](ingestion-plan.md) for full architectural specifica
 - **Phase 6.1 (API Ingestion)**: RapidAPI JSearch integration with bounded payloads, savepoints, and canonical skill matching (**Complete**).
 - **Phase 6.2 (Discovery & Matching Workflow)**: End-to-end admin review gating, conflict prevention, student discovery filters, safe URL navigation, candidate data isolation (**Complete**).
 - **Phase 6.3 (Authorized RSS Ingestion)**: Structured RSS 2.0 / Atom feed parsing, SSRF protection, shared normalization, and cross-source deduplication (**Complete**).
-- **Phase 6.4 (Scheduled Refresh & Fallback Uploads)**: Automated refresh, deadline expiration, and bulk CSV/JSON upload fallback (**Planned**).
+- **Phase 6.4 (Scheduled Refresh & Fallback Uploads)**: Automated refresh, deadline expiration, and bulk CSV/JSON upload fallback (**Complete**).
 
 #### Architectural Decision: BeautifulSoup Web Scraping Deferred
 Website scraping using BeautifulSoup, Selenium, or Playwright is **intentionally deferred and not implemented**:
