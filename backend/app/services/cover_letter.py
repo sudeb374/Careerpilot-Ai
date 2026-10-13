@@ -41,6 +41,56 @@ def get_gemini_api_url(model: str = "gemini-1.5-flash") -> str:
     return f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 
+def format_cover_letter_footer(full_name: str) -> str:
+    """
+    Returns the required, standardized footer structure with editable placeholders.
+    Never includes hardcoded or stored personal social links.
+    """
+    clean_name = full_name.strip() if full_name and full_name.strip() else "Candidate"
+    return (
+        f"Sincerely,\n"
+        f"{clean_name}\n\n"
+        f"LinkedIn: Your LinkedIn URL\n"
+        f"GitHub: Your GitHub URL\n"
+        f"Portfolio: Your Portfolio URL"
+    )
+
+
+CLOSING_PATTERN = re.compile(
+    r"\n\s*(?:Sincerely(?: yours)?|Yours sincerely|With (?:best|warm|kind)? regards|Warm regards|Warmly|Best regards|Kind regards|Regards|Respectfully(?: yours)?)(?:\s*,|\s*\n).*$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def enforce_cover_letter_footer(text: str, full_name: str) -> str:
+    """
+    Enforces the mandatory, standardized candidate sign-off footer across all generated cover letters.
+    Guarantees generic editable placeholders for LinkedIn, GitHub, and Portfolio URLs,
+    and prevents LLM hallucinations, personal URLs, or inconsistent closing structures.
+    """
+    clean_name = full_name.strip() if full_name and full_name.strip() else "Candidate"
+    raw = text.strip()
+
+    m = CLOSING_PATTERN.search(raw)
+    if m:
+        body = raw[:m.start()].rstrip()
+    else:
+        # Check if the text concludes with candidate name, generic name placeholder, or loose social link headers
+        fallback_patterns = [
+            re.compile(r"\n\s*" + re.escape(clean_name) + r"\s*(?:\n.*)?$", re.IGNORECASE | re.DOTALL),
+            re.compile(r"\n\s*\[?(?:Candidate(?:\x27?s)? Name|Your Name|Full Name|Candidate)\]?\s*(?:\n.*)?$", re.IGNORECASE | re.DOTALL),
+            re.compile(r"\n\s*(?:LinkedIn|GitHub|Portfolio):\s*.*$", re.IGNORECASE | re.DOTALL),
+        ]
+        body = raw
+        for pat in fallback_patterns:
+            fm = pat.search(body)
+            if fm:
+                body = body[:fm.start()].rstrip()
+                break
+
+    return f"{body}\n\n{format_cover_letter_footer(clean_name)}"
+
+
 class CandidateProfileContext:
     def __init__(
         self,
@@ -48,29 +98,29 @@ class CandidateProfileContext:
         headline: str | None,
         location: str | None,
         about: str | None,
-        linkedin_url: str | None,
-        github_url: str | None,
-        portfolio_url: str | None,
         educations: list[Education],
         experiences: list[Experience],
         projects: list[Project],
         skills: list[str],
         resume_skills: list[dict[str, str]],
         warnings: list[str],
+        linkedin_url: str | None = None,
+        github_url: str | None = None,
+        portfolio_url: str | None = None,
     ):
         self.full_name = full_name
         self.headline = headline
         self.location = location
         self.about = about
-        self.linkedin_url = linkedin_url
-        self.github_url = github_url
-        self.portfolio_url = portfolio_url
         self.educations = educations
         self.experiences = experiences
         self.projects = projects
         self.skills = skills
         self.resume_skills = resume_skills
         self.warnings = warnings
+        self.linkedin_url = linkedin_url
+        self.github_url = github_url
+        self.portfolio_url = portfolio_url
 
 
 async def gather_candidate_context(
@@ -342,17 +392,8 @@ def generate_deterministic_cover_letter(
         f"and skills can support {opp.company_name}'s goals."
     )
 
-    # Sign-off
-    links: list[str] = []
-    if candidate.linkedin_url:
-        links.append(f"LinkedIn: {candidate.linkedin_url}")
-    if candidate.github_url:
-        links.append(f"GitHub: {candidate.github_url}")
-    if candidate.portfolio_url:
-        links.append(f"Portfolio: {candidate.portfolio_url}")
-
-    links_block = f"\n{chr(10).join(links)}" if links else ""
-    sign_off = f"Sincerely,\n{candidate.full_name}{links_block}"
+    # Sign-off footer
+    sign_off = format_cover_letter_footer(candidate.full_name)
 
     paragraphs = [p for p in [salutation, p1, p2, p3, p_close, sign_off] if p]
     cover_letter_text = "\n\n".join(paragraphs)
@@ -397,8 +438,15 @@ CRITICAL INTEGRITY AND ACCURACY RULES:
 3. If an experience or project is not in the facts, DO NOT mention it.
 4. Tone: {tone.value}
 5. Target Length: {word_targets.get(length, 'approximately 300 words')}.
-6. Structure: Salutation, 3-4 structured body paragraphs, professional closing with candidate's full name.
-7. Do not include markdown code block formatting (e.g. do not wrap in ```markdown or ```).
+6. Structure: Salutation, 3-4 structured body paragraphs, followed by the exact closing footer below.
+7. REQUIRED FOOTER: The letter MUST end with this exact closing and literal placeholders (do NOT insert real URLs or alter the placeholder text):
+Sincerely,
+{candidate.full_name}
+
+LinkedIn: Your LinkedIn URL
+GitHub: Your GitHub URL
+Portfolio: Your Portfolio URL
+8. Do not include markdown code block formatting (e.g. do not wrap in ```markdown or ```).
 
 JOB DETAILS:
 - Title: {opp.title}
@@ -494,6 +542,7 @@ async def generate_cover_letter(
     )
 
     if gemini_text:
+        enforced_gemini_text = enforce_cover_letter_footer(gemini_text, candidate.full_name)
         subject_line = f"Application for {opp.title} — {candidate.full_name}"
         return CoverLetterGenerateResponse(
             opportunity_id=opp.id,
@@ -503,7 +552,7 @@ async def generate_cover_letter(
             tone=request.tone,
             length=request.length,
             subject_line=subject_line,
-            cover_letter_text=gemini_text,
+            cover_letter_text=enforced_gemini_text,
             provider="gemini",
             provider_model="gemini-1.5-flash",
             is_template_fallback=False,
@@ -521,6 +570,7 @@ async def generate_cover_letter(
         additional_notes=request.additional_notes,
         evidence=evidence,
     )
+    enforced_fallback_text = enforce_cover_letter_footer(fallback_text, candidate.full_name)
 
     provider_note = (
         "Generated using CareerPilot AI deterministic template engine because GEMINI_API_KEY is not configured "
@@ -535,7 +585,7 @@ async def generate_cover_letter(
         tone=request.tone,
         length=request.length,
         subject_line=subject_line,
-        cover_letter_text=fallback_text,
+        cover_letter_text=enforced_fallback_text,
         provider="template_fallback",
         provider_model=None,
         is_template_fallback=True,

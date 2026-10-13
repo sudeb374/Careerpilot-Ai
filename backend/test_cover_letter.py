@@ -42,6 +42,8 @@ from app.schemas.cover_letter import (
 )
 from app.services.cover_letter import (
     call_gemini_api,
+    enforce_cover_letter_footer,
+    format_cover_letter_footer,
     generate_cover_letter,
     generate_deterministic_cover_letter,
 )
@@ -195,6 +197,19 @@ async def test_cover_letter_generation_grounded_in_facts():
     assert "Python" in res.cover_letter_text
     assert "DistributedCache" in res.cover_letter_text
     assert "Elena Rostova" in res.cover_letter_text
+
+    # Standardized Footer Check (Generic Editable Placeholders, No Leaked URLs)
+    expected_footer = (
+        "Sincerely,\n"
+        "Elena Rostova\n\n"
+        "LinkedIn: Your LinkedIn URL\n"
+        "GitHub: Your GitHub URL\n"
+        "Portfolio: Your Portfolio URL"
+    )
+    assert res.cover_letter_text.endswith(expected_footer)
+    assert "https://linkedin.com/in/elenarostova" not in res.cover_letter_text
+    assert "https://github.com/elenarostova" not in res.cover_letter_text
+    assert "https://elena.dev" not in res.cover_letter_text
 
     # Verified Evidence Summary audit
     assert "Python" in res.verified_evidence.matched_skills
@@ -354,6 +369,14 @@ async def test_gemini_integration_mocked_success():
     assert res.provider_model == "gemini-1.5-flash"
     assert res.is_template_fallback is False
     assert "CloudScale Inc" in res.cover_letter_text
+    expected_footer = (
+        "Sincerely,\n"
+        "Elena Rostova\n\n"
+        "LinkedIn: Your LinkedIn URL\n"
+        "GitHub: Your GitHub URL\n"
+        "Portfolio: Your Portfolio URL"
+    )
+    assert res.cover_letter_text.endswith(expected_footer)
 
 
 @pytest.mark.anyio
@@ -383,6 +406,14 @@ async def test_gemini_failure_gracefully_falls_back():
     assert res.is_template_fallback is True
     assert "Elena Rostova" in res.cover_letter_text
     assert "CloudScale Inc" in res.cover_letter_text
+    expected_footer = (
+        "Sincerely,\n"
+        "Elena Rostova\n\n"
+        "LinkedIn: Your LinkedIn URL\n"
+        "GitHub: Your GitHub URL\n"
+        "Portfolio: Your Portfolio URL"
+    )
+    assert res.cover_letter_text.endswith(expected_footer)
 
 
 # ============================================================================
@@ -471,3 +502,158 @@ async def test_phase71_roadmap_remains_intact():
             assert "data_status" in data
 
     app.dependency_overrides.clear()
+
+
+# ============================================================================
+# 8. Standardized Footer & Privacy Tests (Generic Editable Placeholders)
+# ============================================================================
+
+def test_format_cover_letter_footer_direct():
+    """Verify format_cover_letter_footer returns the exact specified structure."""
+    footer = format_cover_letter_footer("Amina Diallo")
+    expected = (
+        "Sincerely,\n"
+        "Amina Diallo\n\n"
+        "LinkedIn: Your LinkedIn URL\n"
+        "GitHub: Your GitHub URL\n"
+        "Portfolio: Your Portfolio URL"
+    )
+    assert footer == expected
+
+
+def test_enforce_cover_letter_footer_strips_hallucinated_urls_and_closings():
+    """
+    Verify enforce_cover_letter_footer post-processing safely removes LLM hallucinations,
+    personal URLs, and non-standard closings.
+    """
+    # 1. Hallucinated social URLs
+    hallucinated_text = (
+        "Dear CloudScale Inc Hiring Team,\n\n"
+        "I am eager to contribute.\n\n"
+        "Sincerely,\n"
+        "Elena Rostova\n\n"
+        "LinkedIn: https://linkedin.com/in/hallucinated-profile\n"
+        "GitHub: https://github.com/hallucinated-account\n"
+        "Portfolio: https://hallucinated-portfolio.com"
+    )
+    enforced = enforce_cover_letter_footer(hallucinated_text, "Elena Rostova")
+    expected = (
+        "Dear CloudScale Inc Hiring Team,\n\n"
+        "I am eager to contribute.\n\n"
+        "Sincerely,\n"
+        "Elena Rostova\n\n"
+        "LinkedIn: Your LinkedIn URL\n"
+        "GitHub: Your GitHub URL\n"
+        "Portfolio: Your Portfolio URL"
+    )
+    assert enforced == expected
+    assert "https://linkedin.com" not in enforced
+    assert "https://github.com" not in enforced
+
+    # 2. Alternative closing (Warm regards)
+    warm_regards_text = (
+        "Dear Team,\n\n"
+        "I look forward to discussing the role.\n\n"
+        "Warm regards,\n"
+        "Elena Rostova"
+    )
+    enforced_warm = enforce_cover_letter_footer(warm_regards_text, "Elena Rostova")
+    assert enforced_warm.endswith(
+        "Sincerely,\nElena Rostova\n\nLinkedIn: Your LinkedIn URL\nGitHub: Your GitHub URL\nPortfolio: Your Portfolio URL"
+    )
+
+    # 3. Missing closing keyword (ended with name directly)
+    name_only_text = (
+        "Dear Team,\n\n"
+        "Thank you for your consideration.\n\n"
+        "Elena Rostova"
+    )
+    enforced_name_only = enforce_cover_letter_footer(name_only_text, "Elena Rostova")
+    assert enforced_name_only.endswith(
+        "Sincerely,\nElena Rostova\n\nLinkedIn: Your LinkedIn URL\nGitHub: Your GitHub URL\nPortfolio: Your Portfolio URL"
+    )
+
+
+@pytest.mark.anyio
+async def test_deterministic_fallback_uses_exact_footer_and_never_stored_social_urls():
+    """
+    Verify fallback generation uses candidate's real authenticated name and literal
+    generic placeholders, NEVER leaking candidate's stored profile social URLs.
+    """
+    db = AsyncMock()
+    candidate = make_test_profile(full_name="Priya Sharma")
+    candidate.linkedin_url = "https://linkedin.com/in/priya-sharma-personal"
+    candidate.github_url = "https://github.com/priyasharma-code"
+    candidate.portfolio_url = "https://priyasharma.dev"
+
+    opp = make_test_opportunity()
+
+    async def mock_execute(stmt):
+        mock_res = MagicMock()
+        s = str(stmt).lower()
+        if "from profiles" in s:
+            mock_res.scalar_one_or_none.return_value = candidate
+        elif "from opportunities" in s:
+            mock_res.scalar_one_or_none.return_value = opp
+        return mock_res
+
+    db.execute.side_effect = mock_execute
+
+    req = CoverLetterGenerateRequest(opportunity_id=opp.id)
+    with patch("app.services.cover_letter.call_gemini_api", return_value=None):
+        res = await generate_cover_letter(db, candidate.id, req)
+
+    expected_footer = (
+        "Sincerely,\n"
+        "Priya Sharma\n\n"
+        "LinkedIn: Your LinkedIn URL\n"
+        "GitHub: Your GitHub URL\n"
+        "Portfolio: Your Portfolio URL"
+    )
+    assert res.cover_letter_text.endswith(expected_footer)
+
+    # Never leak stored URLs
+    assert "https://linkedin.com/in/priya-sharma-personal" not in res.cover_letter_text
+    assert "https://github.com/priyasharma-code" not in res.cover_letter_text
+    assert "https://priyasharma.dev" not in res.cover_letter_text
+    assert "Sudeb Kundu" not in res.cover_letter_text
+
+
+@pytest.mark.anyio
+async def test_authenticated_candidate_names_preserved_and_never_hardcoded():
+    """
+    Verify that candidate names are dynamically taken from verified profile data,
+    preserving individual identities across multiple different authenticated users.
+    """
+    db = AsyncMock()
+    opp = make_test_opportunity()
+
+    for name in ["Marcus Aurelius", "Amina Diallo", "Chen Wei"]:
+        candidate = make_test_profile(full_name=name)
+
+        async def make_mock(c):
+            async def mock_execute(stmt):
+                mock_res = MagicMock()
+                s = str(stmt).lower()
+                if "from profiles" in s:
+                    mock_res.scalar_one_or_none.return_value = c
+                elif "from opportunities" in s:
+                    mock_res.scalar_one_or_none.return_value = opp
+                return mock_res
+            return mock_execute
+
+        db.execute.side_effect = await make_mock(candidate)
+
+        req = CoverLetterGenerateRequest(opportunity_id=opp.id)
+        with patch("app.services.cover_letter.call_gemini_api", return_value=None):
+            res = await generate_cover_letter(db, candidate.id, req)
+
+        expected_footer = (
+            f"Sincerely,\n"
+            f"{name}\n\n"
+            f"LinkedIn: Your LinkedIn URL\n"
+            f"GitHub: Your GitHub URL\n"
+            f"Portfolio: Your Portfolio URL"
+        )
+        assert res.cover_letter_text.endswith(expected_footer)
+        assert "Sudeb Kundu" not in res.cover_letter_text
