@@ -42,6 +42,7 @@ import {
   ArrowRight,
   Database,
   Sparkles,
+  Rss,
 } from "lucide-react";
 
 export interface MatchedSkill {
@@ -109,11 +110,48 @@ const POPULAR_SEARCHES = [
   "Full Stack Developer",
 ];
 
+const RSS_PRESETS = [
+  {
+    id: "weworkremotely-programming",
+    name: "We Work Remotely — Programming",
+    url: "https://weworkremotely.com/categories/remote-programming-jobs.rss",
+    description: "Curated remote developer and software engineering listings.",
+  },
+  {
+    id: "weworkremotely-devops",
+    name: "We Work Remotely — DevOps & Sysadmin",
+    url: "https://weworkremotely.com/categories/remote-devops-sysadmin-jobs.rss",
+    description: "Remote cloud, infrastructure, and systems administration listings.",
+  },
+  {
+    id: "remoteok-dev",
+    name: "RemoteOK — Tech Openings",
+    url: "https://remoteok.com/remote-jobs.rss",
+    description: "Global remote technology and engineering positions.",
+  },
+  {
+    id: "custom",
+    name: "Custom RSS / Atom Feed URL...",
+    url: "",
+    description: "Enter any authorized public RSS 2.0 or Atom job feed URL.",
+  },
+];
+
 export function IngestionManager() {
+  const [activeTab, setActiveTab] = useState<"jsearch" | "rss">("jsearch");
+
+  // JSearch state
   const [query, setQuery] = useState("Software Engineer Intern");
   const [country, setCountry] = useState("in");
   const [datePosted, setDatePosted] = useState("all");
   const [remoteOnly, setRemoteOnly] = useState(false);
+
+  // RSS state
+  const [rssPreset, setRssPreset] = useState("weworkremotely-programming");
+  const [rssCustomUrl, setRssCustomUrl] = useState("");
+  const [rssMaxItems, setRssMaxItems] = useState(20);
+  const [rssKeywords, setRssKeywords] = useState("");
+  const [feedMeta, setFeedMeta] = useState<{ title?: string | null; link?: string | null; description?: string | null } | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -199,6 +237,71 @@ export function IngestionManager() {
     }
   };
 
+  const handleRssPreview = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const feedUrl = rssPreset === "custom"
+      ? rssCustomUrl.trim()
+      : RSS_PRESETS.find((p) => p.id === rssPreset)?.url || "";
+
+    if (!feedUrl) {
+      setError("Please provide a valid RSS feed URL.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setErrorType(null);
+    setImportResult(null);
+
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error("You must be logged in as an administrator to preview RSS ingestion.");
+      }
+
+      const res = await fetch(`${API_URL}/api/v1/admin/ingestion/rss/preview`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          feed_url: feedUrl,
+          max_items: Number(rssMaxItems),
+          filter_keywords: rssKeywords.trim() || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.detail || `Feed request failed with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      setJobs(data.jobs || []);
+      setSummary(data.summary || null);
+      setFeedMeta({
+        title: data.feed_title,
+        link: data.feed_link,
+        description: data.feed_description,
+      });
+
+      const autoSelected = new Set<string>();
+      (data.jobs || []).forEach((j: JobPreview) => {
+        if (!j.is_duplicate && (!j.errors || j.errors.length === 0)) {
+          autoSelected.add(j.job_id);
+        }
+      });
+      setSelectedJobIds(autoSelected);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch and preview RSS feed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleSelectJob = (jobId: string) => {
     const next = new Set(selectedJobIds);
     if (next.has(jobId)) {
@@ -251,9 +354,13 @@ export function IngestionManager() {
 
       const selectedJobsList = jobs.filter((j) => selectedJobIds.has(j.job_id));
 
+      const importEndpoint = activeTab === "rss"
+        ? `${API_URL}/api/v1/admin/ingestion/rss/import`
+        : `${API_URL}/api/v1/admin/ingestion/jsearch/import`;
+
       let res: Response;
       try {
-        res = await fetch(`${API_URL}/api/v1/admin/ingestion/jsearch/import`, {
+        res = await fetch(importEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -313,128 +420,298 @@ export function IngestionManager() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Free-Tier Allowance & Provider Notice */}
-      <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary mt-0.5">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-foreground text-sm">RapidAPI JSearch Integration</span>
-              <Badge variant="outline" className="text-xs font-medium">Free Tier Guard</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Basic plan allowance is 200 requests/month. Each search preview requests 1 bounded page. Multi-page auto-fetching is disabled to preserve quota.
-              Imported opportunities are strictly saved as <strong>Draft</strong> for administrator review and attribution retention.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-          <Info className="h-4 w-4" />
-          <span>Default: 1 result page</span>
-        </div>
+      {/* Source Selection Tabs */}
+      <div className="flex border-b border-border space-x-2">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("jsearch");
+            setJobs([]);
+            setSummary(null);
+            setError(null);
+            setFeedMeta(null);
+          }}
+          className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === "jsearch"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Sparkles className="h-4 w-4" />
+          RapidAPI JSearch
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("rss");
+            setJobs([]);
+            setSummary(null);
+            setError(null);
+            setFeedMeta(null);
+          }}
+          className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === "rss"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Rss className="h-4 w-4" />
+          Authorized RSS Feeds (Phase 6.3)
+        </button>
       </div>
 
-      {/* 2. Search & Filter Controls */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Search Job Discovery</CardTitle>
-          <CardDescription>
-            Specify role title, skills, or target keywords to fetch real-time listings.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePreview} className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="e.g. Software Engineer Intern, Python Developer..."
-                  className="pl-9"
-                  disabled={loading}
-                />
+      {activeTab === "jsearch" ? (
+        <>
+          {/* 1. Free-Tier Allowance & Provider Notice */}
+          <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary mt-0.5">
+                <Sparkles className="h-5 w-5" />
               </div>
-
-              <div className="w-full md:w-44">
-                <Select value={country} onValueChange={(val) => val && setCountry(val)} disabled={loading}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in">India (IN)</SelectItem>
-                    <SelectItem value="us">United States (US)</SelectItem>
-                    <SelectItem value="gb">United Kingdom (GB)</SelectItem>
-                    <SelectItem value="ca">Canada (CA)</SelectItem>
-                    <SelectItem value="de">Germany (DE)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground text-sm">RapidAPI JSearch Integration</span>
+                  <Badge variant="outline" className="text-xs font-medium">Free Tier Guard</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                  Basic plan allowance is 200 requests/month. Each search preview requests 1 bounded page. Multi-page auto-fetching is disabled to preserve quota.
+                  Imported opportunities are strictly saved as <strong>Draft</strong> for administrator review and attribution retention.
+                </p>
               </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+              <Info className="h-4 w-4" />
+              <span>Default: 1 result page</span>
+            </div>
+          </div>
 
-              <div className="w-full md:w-44">
-                <Select value={datePosted} onValueChange={(val) => val && setDatePosted(val)} disabled={loading}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Posting Time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Dates</SelectItem>
-                    <SelectItem value="today">Past 24 Hours</SelectItem>
-                    <SelectItem value="3days">Past 3 Days</SelectItem>
-                    <SelectItem value="week">Past Week</SelectItem>
-                    <SelectItem value="month">Past Month</SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* 2. Search & Filter Controls */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Search Job Discovery</CardTitle>
+              <CardDescription>
+                Specify role title, skills, or target keywords to fetch real-time listings.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePreview} className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="e.g. Software Engineer Intern, Python Developer..."
+                      className="pl-9"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="w-full md:w-44">
+                    <Select value={country} onValueChange={(val) => val && setCountry(val)} disabled={loading}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="in">India (IN)</SelectItem>
+                        <SelectItem value="us">United States (US)</SelectItem>
+                        <SelectItem value="gb">United Kingdom (GB)</SelectItem>
+                        <SelectItem value="ca">Canada (CA)</SelectItem>
+                        <SelectItem value="de">Germany (DE)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-full md:w-44">
+                    <Select value={datePosted} onValueChange={(val) => val && setDatePosted(val)} disabled={loading}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Posting Time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Dates</SelectItem>
+                        <SelectItem value="today">Past 24 Hours</SelectItem>
+                        <SelectItem value="3days">Past 3 Days</SelectItem>
+                        <SelectItem value="week">Past Week</SelectItem>
+                        <SelectItem value="month">Past Month</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button type="submit" disabled={loading || !query.trim()} className="md:w-36">
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Searching...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="mr-2 h-4 w-4" />
+                        Preview Jobs
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Quick search tags and remote toggle */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-muted-foreground">Quick queries:</span>
+                    {POPULAR_SEARCHES.map((term) => (
+                      <button
+                        key={term}
+                        type="button"
+                        onClick={() => {
+                          setQuery(term);
+                        }}
+                        className="px-2.5 py-1 rounded-md bg-muted hover:bg-muted/80 text-foreground transition-colors"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={remoteOnly}
+                      onChange={(e) => setRemoteOnly(e.target.checked)}
+                      disabled={loading}
+                      className="rounded border-input text-primary focus:ring-primary"
+                    />
+                    <span className="text-foreground font-medium">Remote only</span>
+                  </label>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <>
+          {/* RSS Feed Notice */}
+          <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mt-0.5">
+                <Rss className="h-5 w-5" />
               </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground text-sm">Authorized RSS Feed Ingestion (Phase 6.3)</span>
+                  <Badge variant="outline" className="text-xs font-medium border-emerald-500/30 text-emerald-600 dark:text-emerald-400">Structured XML</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                  Reads clean XML (RSS 2.0 &amp; Atom 1.0) with strict SSRF protection and cross-source duplicate detection. HTML website scraping is intentionally deferred to avoid brittle parsers and legal uncertainty.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+              <Info className="h-4 w-4" />
+              <span>No scraping overhead</span>
+            </div>
+          </div>
 
-              <Button type="submit" disabled={loading || !query.trim()} className="md:w-36">
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="mr-2 h-4 w-4" />
-                    Preview Jobs
-                  </>
+          {/* RSS Feed Controls */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">RSS &amp; Atom Feed Ingestion</CardTitle>
+              <CardDescription>
+                Select an approved feed preset or supply an authorized feed URL to discover openings.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleRssPreview} className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="w-full md:w-80">
+                    <Select value={rssPreset} onValueChange={(val) => val && setRssPreset(val)} disabled={loading}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Feed Preset" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RSS_PRESETS.map((preset) => (
+                          <SelectItem key={preset.id} value={preset.id}>
+                            {preset.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {rssPreset === "custom" && (
+                    <div className="relative flex-1">
+                      <Input
+                        value={rssCustomUrl}
+                        onChange={(e) => setRssCustomUrl(e.target.value)}
+                        placeholder="https://example.com/feed.xml"
+                        className="w-full"
+                        disabled={loading}
+                      />
+                    </div>
+                  )}
+
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={rssKeywords}
+                      onChange={(e) => setRssKeywords(e.target.value)}
+                      placeholder="Filter keywords (e.g. Intern, Python, React)..."
+                      className="pl-9"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="w-full md:w-32">
+                    <Select value={String(rssMaxItems)} onValueChange={(val) => val && setRssMaxItems(Number(val))} disabled={loading}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Max Items" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10 Items</SelectItem>
+                        <SelectItem value="20">20 Items</SelectItem>
+                        <SelectItem value="50">50 Items</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button type="submit" disabled={loading || (rssPreset === "custom" && !rssCustomUrl.trim())} className="md:w-36">
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fetching...
+                      </>
+                    ) : (
+                      <>
+                        <Rss className="mr-2 h-4 w-4" />
+                        Fetch Feed
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Preset feed description */}
+                {rssPreset !== "custom" && (
+                  <p className="text-xs text-muted-foreground">
+                    {RSS_PRESETS.find((p) => p.id === rssPreset)?.description}
+                  </p>
                 )}
-              </Button>
-            </div>
+              </form>
+            </CardContent>
+          </Card>
 
-            {/* Quick search tags and remote toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-muted-foreground">Quick queries:</span>
-                {POPULAR_SEARCHES.map((term) => (
-                  <button
-                    key={term}
-                    type="button"
-                    onClick={() => {
-                      setQuery(term);
-                    }}
-                    className="px-2.5 py-1 rounded-md bg-muted hover:bg-muted/80 text-foreground transition-colors"
-                  >
-                    {term}
-                  </button>
-                ))}
+          {/* Feed Metadata Banner if present */}
+          {feedMeta && feedMeta.title && (
+            <div className="rounded-lg border border-border/70 bg-muted/40 p-3 text-xs flex items-center justify-between">
+              <div>
+                <span className="font-semibold text-foreground">{feedMeta.title}</span>
+                {feedMeta.description && <span className="text-muted-foreground ml-2">— {feedMeta.description}</span>}
               </div>
-
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={remoteOnly}
-                  onChange={(e) => setRemoteOnly(e.target.checked)}
-                  disabled={loading}
-                  className="rounded border-input text-primary focus:ring-primary"
-                />
-                <span className="text-foreground font-medium">Remote only</span>
-              </label>
+              {feedMeta.link && (
+                <a href={feedMeta.link} target="_blank" rel="noopener noreferrer" className="flex items-center text-primary hover:underline shrink-0">
+                  Feed Website <ExternalLink className="ml-1 h-3 w-3" />
+                </a>
+              )}
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          )}
+        </>
+      )}
 
       {/* 3. Error Alerts */}
       {error && (

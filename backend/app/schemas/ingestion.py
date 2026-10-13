@@ -102,3 +102,39 @@ class JSearchImportResponse(BaseModel):
     duplicate_count: int
     review_required_count: int
     details: list[ImportDetailItem]
+
+
+class RssPresetFeed(BaseModel):
+    id: str
+    name: str
+    url: str
+    description: str
+
+
+class RssPreviewRequest(BaseModel):
+    feed_url: str = Field(..., min_length=10, max_length=1000, description="Authorized RSS or Atom feed URL")
+    max_items: int = Field(20, ge=1, le=50, description="Max items to parse (bounded to 50)")
+    filter_keywords: str | None = Field(None, max_length=200, description="Optional keyword filter on title or description")
+
+
+class RssPreviewResponse(BaseModel):
+    feed_title: str | None = None
+    feed_link: str | None = None
+    feed_description: str | None = None
+    jobs: list[JobPreviewItem]
+    total_found: int
+    summary: PreviewSummary
+
+
+class RssImportRequest(BaseModel):
+    selected_job_ids: list[str] = Field(..., min_length=1, description="IDs of RSS jobs explicitly selected for import")
+    jobs: list[JobPreviewItem] = Field(..., min_length=1, description="Previewed job objects")
+
+
+class RssImportResponse(BaseModel):
+    inserted_count: int
+    skipped_count: int
+    duplicate_count: int
+    review_required_count: int
+    details: list[ImportDetailItem]
+

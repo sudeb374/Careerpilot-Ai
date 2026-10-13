@@ -56,16 +56,33 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 
 | Phase | Scope                                                  | Status      |
 |-------|--------------------------------------------------------|-------------|
-| 1     | Project foundation, structure, design system           | In Progress |
-| 2     | Authentication and student profiles                    | Planned     |
-| 3     | Opportunity management                                 | Planned     |
-| 4     | Resume intelligence                                    | Planned     |
-| 5     | AI matching engine                                     | Planned     |
-| 6     | Authorized automated ingestion                         | Planned     |
+| 1     | Project foundation, structure, design system           | Complete    |
+| 2     | Authentication and student profiles                    | Complete    |
+| 3     | Opportunity management                                 | Complete    |
+| 4     | Resume intelligence                                    | Complete    |
+| 5     | AI matching engine                                     | Complete    |
+| 6     | Authorized automated ingestion                         | In Progress |
 | 7     | Career copilot                                         | Planned     |
 | 8     | Application tracker                                    | Planned     |
 | 9     | Testing and evaluation                                 | Planned     |
 | 10    | Deployment and presentation                            | Planned     |
+
+### 5.1 Phase 6: Automated Ingestion Plan & Scope Decisions
+
+See [docs/ingestion-plan.md](ingestion-plan.md) for full architectural specifications.
+
+- **Phase 6.1 (API Ingestion)**: RapidAPI JSearch integration with bounded payloads, savepoints, and canonical skill matching (**Complete**).
+- **Phase 6.2 (Discovery & Matching Workflow)**: End-to-end admin review gating, conflict prevention, student discovery filters, safe URL navigation, candidate data isolation (**Complete**).
+- **Phase 6.3 (Authorized RSS Ingestion)**: Structured RSS 2.0 / Atom feed parsing, SSRF protection, shared normalization, and cross-source deduplication (**Complete**).
+- **Phase 6.4 (Scheduled Refresh & Fallback Uploads)**: Automated refresh, deadline expiration, and bulk CSV/JSON upload fallback (**Planned**).
+
+#### Architectural Decision: BeautifulSoup Web Scraping Deferred
+Website scraping using BeautifulSoup, Selenium, or Playwright is **intentionally deferred and not implemented**:
+1. JSearch provides an authorized API-based ingestion channel.
+2. Approved RSS feeds provide clean, structured data with explicit schemas.
+3. Avoiding brittle site-specific DOM parsers, unneeded network overhead, and scraping legal/permission uncertainty.
+4. Admin fallback uploads support sources that cannot be integrated via direct API or RSS feeds safely.
+Scraping will only be reconsidered if an authorized provider explicitly allows automated scraping and a clear technical need arises. Phase 6 is not complete until all remaining requirements are implemented or formally approved.
 
 ## 6. AI Match Score Disclaimer
 

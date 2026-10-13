@@ -90,6 +90,7 @@ backend/
 | Pydantic Settings           | Type-safe configuration from environment variables           |
 | shadcn/ui (base-nova)       | Accessible, composable, fully customizable components        |
 | Tailwind CSS v4             | CSS-first config, native cascade layers, improved DX         |
+| Authorized Ingestion (API & RSS) | Bounded API/RSS ingestion with SSRF guards; deferred web scraping |
 
 ## 5. Communication Patterns
 
