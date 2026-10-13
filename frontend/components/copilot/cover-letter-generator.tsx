@@ -95,7 +95,7 @@ export function CoverLetterGenerator() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
 
@@ -150,7 +150,7 @@ export function CoverLetterGenerator() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
 

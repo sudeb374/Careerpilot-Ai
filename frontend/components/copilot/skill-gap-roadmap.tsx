@@ -122,7 +122,7 @@ export function SkillGapRoadmap() {
         } = await supabase.auth.getSession();
 
         if (!session) {
-          router.push("/auth/login");
+          router.push("/login");
           return;
         }
 
@@ -189,7 +189,7 @@ export function SkillGapRoadmap() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
 

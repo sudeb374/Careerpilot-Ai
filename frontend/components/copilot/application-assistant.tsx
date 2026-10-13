@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -83,6 +83,7 @@ export function ApplicationAssistant() {
   // Selection & Form State
   const [opportunities, setOpportunities] = useState<OpportunityItem[]>([]);
   const [loadingOpportunities, setLoadingOpportunities] = useState(true);
+  const [opportunityLoadError, setOpportunityLoadError] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState("");
   const [selectedOpportunityId, setSelectedOpportunityId] = useState<string | null>(
     preselectedOppId || null
@@ -103,29 +104,74 @@ export function ApplicationAssistant() {
   const [editableAnswer, setEditableAnswer] = useState("");
   const [copied, setCopied] = useState(false);
 
-  // Fetch opportunities on mount
-  useEffect(() => {
-    async function loadOpportunities() {
-      try {
-        setLoadingOpportunities(true);
-        const res = await fetch(`${API_URL}/api/v1/opportunities?limit=100`);
-        if (!res.ok) throw new Error("Failed to load opportunities");
-        const json = await res.json();
-        const items: OpportunityItem[] = Array.isArray(json) ? json : json.items || [];
-        setOpportunities(items);
+  // Fetch opportunities on mount using authenticated endpoint
+  const loadOpportunities = useCallback(async () => {
+    setLoadingOpportunities(true);
+    setOpportunityLoadError(null);
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-        if (preselectedOppId && items.some((o) => o.id === preselectedOppId)) {
-          setSelectedOpportunityId(preselectedOppId);
-          setIsGeneralMode(false);
-        }
-      } catch (err) {
-        console.error("Error loading opportunities:", err);
-      } finally {
-        setLoadingOpportunities(false);
+      if (!session) {
+        router.push("/login");
+        return;
       }
+
+      const res = await fetch(`${API_URL}/api/v1/opportunities?page=1&page_size=50`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        const errMsg = errJson?.detail || `Failed to load opportunities (${res.status})`;
+        setOpportunityLoadError(errMsg);
+        return;
+      }
+
+      const json = await res.json();
+      const items: OpportunityItem[] = Array.isArray(json) ? json : json.items || [];
+      setOpportunities(items);
+
+      if (preselectedOppId) {
+        const found = items.find((o) => o.id === preselectedOppId);
+        if (found) {
+          setSelectedOpportunityId(found.id);
+          setIsGeneralMode(false);
+        } else {
+          // If preselected opportunity is not in the first page, fetch it directly
+          try {
+            const singleRes = await fetch(`${API_URL}/api/v1/opportunities/${preselectedOppId}`, {
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+              },
+            });
+            if (singleRes.ok) {
+              const singleOpp = await singleRes.json();
+              setOpportunities((prev) => [singleOpp, ...prev.filter((p) => p.id !== singleOpp.id)]);
+              setSelectedOpportunityId(singleOpp.id);
+              setIsGeneralMode(false);
+            }
+          } catch {
+            // Ignore single fetch failure
+          }
+        }
+      }
+    } catch (err: unknown) {
+      console.error("Error loading opportunities:", err);
+      setOpportunityLoadError(err instanceof Error ? err.message : "Failed to load opportunities");
+    } finally {
+      setLoadingOpportunities(false);
     }
+  }, [preselectedOppId, router]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadOpportunities();
-  }, [preselectedOppId]);
+  }, [loadOpportunities]);
 
   // Fetch suggested questions on mount
   useEffect(() => {
@@ -157,9 +203,24 @@ export function ApplicationAssistant() {
 
   // Handle generation
   const handleGenerate = async () => {
-    if (!question.trim()) {
-      setError("Please enter an application question.");
+    if (!question.trim() || question.trim().length < 5) {
+      setError("Please enter an application question (at least 5 characters).");
       return;
+    }
+
+    if (!isGeneralMode && !selectedOpportunityId) {
+      setError("Please select a published opportunity, or switch to General Application mode.");
+      return;
+    }
+
+    let parsedLimit: number | null = null;
+    if (wordLimit.trim()) {
+      const val = parseInt(wordLimit.trim(), 10);
+      if (isNaN(val) || val < 30 || val > 1000) {
+        setError("Word limit must be between 30 and 1000 words (or left blank).");
+        return;
+      }
+      parsedLimit = val;
     }
 
     try {
@@ -172,17 +233,15 @@ export function ApplicationAssistant() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
-
-      const parsedLimit = wordLimit.trim() ? parseInt(wordLimit.trim(), 10) : null;
 
       const payload = {
         question: question.trim(),
         opportunity_id: isGeneralMode ? null : selectedOpportunityId,
         style,
-        word_limit: parsedLimit && parsedLimit > 0 ? parsedLimit : null,
+        word_limit: parsedLimit,
         additional_context: additionalContext.trim() ? additionalContext.trim() : null,
       };
 
@@ -281,7 +340,12 @@ export function ApplicationAssistant() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsGeneralMode(false)}
+                  onClick={() => {
+                    setIsGeneralMode(false);
+                    if (!selectedOpportunityId && opportunities.length > 0) {
+                      setSelectedOpportunityId(opportunities[0].id);
+                    }
+                  }}
                   className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
                     !isGeneralMode
                       ? "border-[#1B5E3B] bg-[#E5EDE7] text-[#1B5E3B]"
@@ -306,9 +370,28 @@ export function ApplicationAssistant() {
 
                   {loadingOpportunities ? (
                     <div className="h-10 rounded-md bg-[#F0F5F1] animate-pulse" />
+                  ) : opportunityLoadError ? (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs text-red-700 space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-semibold">
+                        <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                        <span>Failed to load opportunities</span>
+                      </div>
+                      <p className="text-[11px] text-red-600/90 leading-tight">{opportunityLoadError}</p>
+                      <button
+                        type="button"
+                        onClick={() => loadOpportunities()}
+                        className="text-[11px] font-semibold text-red-700 underline hover:text-red-800"
+                      >
+                        Retry loading opportunities
+                      </button>
+                    </div>
                   ) : (
                     <div className="max-h-40 overflow-y-auto space-y-1.5 border border-[#DAE3DC] rounded-lg p-1.5 bg-[#F6FAF7]">
-                      {filteredOpps.length === 0 ? (
+                      {opportunities.length === 0 ? (
+                        <p className="text-xs text-[#5A7362] p-2 text-center">
+                          No published opportunities available
+                        </p>
+                      ) : filteredOpps.length === 0 ? (
                         <p className="text-xs text-[#5A7362] p-2 text-center">
                           No matching opportunities found
                         </p>

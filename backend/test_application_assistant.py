@@ -16,7 +16,7 @@ Validates:
 
 import os
 import sys
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
@@ -99,6 +99,9 @@ def make_test_opportunity(
     opp.id = uuid4()
     opp.title = title
     opp.company_name = company_name
+    opp.company_logo_url = None
+    opp.deadline = None
+    opp.created_at = datetime.now()
     opp.status = status
     opp.opportunity_type = "Internship"
     opp.work_model = "Hybrid"
@@ -626,3 +629,178 @@ async def test_phase71_and_phase72_remain_intact():
             assert "suggested_questions" in res_73.json()
 
     app.dependency_overrides.clear()
+
+
+# ============================================================================
+# 12. Regression Tests: Opportunity Listing, Auth, and 404 Handling
+# ============================================================================
+
+@pytest.mark.anyio
+async def test_published_opportunities_listing_and_filtering():
+    """Verify authenticated students receive published opportunities in PaginatedOpportunityResponse format,
+    while Draft, Closed, and Expired opportunities are excluded."""
+    student = make_test_profile()
+    pub_opp = make_test_opportunity(title="Published Engineer", status="Published")
+    mock_db = AsyncMock()
+
+    app.dependency_overrides[get_current_profile] = lambda: student
+    app.dependency_overrides[get_db] = lambda: mock_db
+
+    async def mock_exec(stmt):
+        res = MagicMock()
+        s = str(stmt).lower()
+        if "count" in s:
+            res.scalar.return_value = 1
+        else:
+            res.scalars.return_value.all.return_value = [pub_opp]
+        return res
+
+    mock_db.execute.side_effect = mock_exec
+
+    transport = ASGITransport(app=app)
+    with patch("app.routers.opportunity.expire_overdue_opportunities", new_callable=AsyncMock):
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            res = await client.get("/api/v1/opportunities?page=1&page_size=50")
+            assert res.status_code == 200
+            data = res.json()
+            assert "items" in data
+            assert "total" in data
+            assert "page" in data
+            assert "page_size" in data
+            assert "total_pages" in data
+            assert data["page"] == 1
+            assert data["page_size"] == 50
+            assert len(data["items"]) == 1
+            assert data["items"][0]["title"] == "Published Engineer"
+            assert data["items"][0]["status"] == "Published"
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_opportunities_listing_unauthenticated_returns_401():
+    """Verify calling opportunities listing without authentication returns 401 Unauthorized."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.get("/api/v1/opportunities?page=1&page_size=50")
+        assert res.status_code == 401
+        assert res.json().get("detail") == "Not authenticated"
+
+
+@pytest.mark.anyio
+async def test_generate_endpoint_missing_opportunity_returns_404():
+    """Verify passing a non-existent or unpublished opportunity_id returns 404 Not Found with clear detail."""
+    student = make_test_profile()
+    mock_db = AsyncMock()
+
+    app.dependency_overrides[get_current_profile] = lambda: student
+    app.dependency_overrides[get_db] = lambda: mock_db
+
+    async def mock_exec(stmt):
+        res = MagicMock()
+        s = str(stmt).lower()
+        if "from profiles" in s:
+            res.scalar_one_or_none.return_value = student
+        elif "from opportunities" in s:
+            # Opportunity not found
+            res.scalar_one_or_none.return_value = None
+        return res
+
+    mock_db.execute.side_effect = mock_exec
+
+    missing_opp_id = str(uuid4())
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.post(
+            "/api/v1/copilot/application-assistant/generate",
+            json={
+                "question": "Why should we hire you for this role?",
+                "opportunity_id": missing_opp_id,
+                "style": "professional",
+            },
+        )
+        assert res.status_code == 404
+        assert "not found or not published" in res.json().get("detail", "").lower()
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_generate_endpoint_with_published_opportunity_success():
+    """Verify passing a valid published opportunity and question generates answer with opportunity context."""
+    student = make_test_profile()
+    opp = make_test_opportunity(
+        title="Distributed Systems Intern",
+        company_name="CloudScale Systems",
+        skills=["Python", "FastAPI"],
+        status="Published",
+    )
+    mock_db = AsyncMock()
+
+    app.dependency_overrides[get_current_profile] = lambda: student
+    app.dependency_overrides[get_db] = lambda: mock_db
+
+    async def mock_exec(stmt):
+        res = MagicMock()
+        s = str(stmt).lower()
+        if "from profiles" in s:
+            res.scalar_one_or_none.return_value = student
+        elif "from opportunities" in s:
+            res.scalar_one_or_none.return_value = opp
+        return res
+
+    mock_db.execute.side_effect = mock_exec
+
+    transport = ASGITransport(app=app)
+    with patch("app.services.application_assistant.call_gemini_for_question", return_value=None):
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            res = await client.post(
+                "/api/v1/copilot/application-assistant/generate",
+                json={
+                    "question": "Why should we hire you for this role?",
+                    "opportunity_id": str(opp.id),
+                    "style": "professional",
+                },
+            )
+            assert res.status_code == 200
+            data = res.json()
+            assert data["opportunity_id"] == str(opp.id)
+            assert data["opportunity_title"] == "Distributed Systems Intern"
+            assert data["company_name"] == "CloudScale Systems"
+            assert data["is_template_fallback"] is True
+            assert len(data["answer_text"]) > 50
+            assert "Stanford University" in data["answer_text"]
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_generate_endpoint_validation_errors():
+    """Verify endpoint rejects invalid payloads with 422 Unprocessable Entity."""
+    student = make_test_profile()
+    mock_db = AsyncMock()
+
+    app.dependency_overrides[get_current_profile] = lambda: student
+    app.dependency_overrides[get_db] = lambda: mock_db
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Question too short (< 5 chars)
+        res_short = await client.post(
+            "/api/v1/copilot/application-assistant/generate",
+            json={"question": "Why?"},
+        )
+        assert res_short.status_code == 422
+
+        # Word limit too small (< 30)
+        res_limit = await client.post(
+            "/api/v1/copilot/application-assistant/generate",
+            json={
+                "question": "Why should we hire you?",
+                "word_limit": 10,
+            },
+        )
+        assert res_limit.status_code == 422
+
+    app.dependency_overrides.clear()
+
