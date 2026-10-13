@@ -68,12 +68,17 @@ async def execute_scheduled_refresh(
     db: AsyncSession,
     admin_profile_id: UUID | None = None,
     force: bool = False,
+    include_jsearch: bool = True,
+    include_rss: bool = True,
+    auto_expire_only: bool = False,
+    dry_run: bool = False,
 ) -> RefreshSummary:
     """
-    Execute a full refresh cycle across authorized RSS feeds and JSearch.
+    Execute a full or selective refresh cycle across authorized RSS feeds and JSearch.
     
     If force=False and scheduled_refresh_enabled=False, returns immediately with skipped status.
     Uses concurrency locking to reject overlapping calls.
+    Allows disabling JSearch (protecting RapidAPI quota) or dry-run execution.
     """
     global _is_refresh_running, _last_refresh_summary
 
@@ -103,17 +108,20 @@ async def execute_scheduled_refresh(
         )
 
         try:
-            # 1. Fetch active canonical skills for mapping
-            skills_stmt = select(Skill).where(Skill.is_active.is_(True))
-            skills_res = await db.execute(skills_stmt)
-            skills_objs = skills_res.scalars().all()
-            skills_obj_map = {s.name.lower().strip(): s for s in skills_objs}
-            skills_id_map = {name: s.id for name, s in skills_obj_map.items()}
+            # 1. Fetch active canonical skills for mapping (only if external sources are active)
+            skills_obj_map: dict[str, Skill] = {}
+            skills_id_map: dict[str, UUID] = {}
+            if not auto_expire_only and (include_rss or include_jsearch):
+                skills_stmt = select(Skill).where(Skill.is_active.is_(True))
+                skills_res = await db.execute(skills_stmt)
+                skills_objs = skills_res.scalars().all()
+                skills_obj_map = {s.name.lower().strip(): s for s in skills_objs}
+                skills_id_map = {name: s.id for name, s in skills_obj_map.items()}
 
             # -----------------------------------------------------------------
             # 2. Process RSS Feeds
             # -----------------------------------------------------------------
-            if settings.scheduled_refresh_rss_enabled:
+            if not auto_expire_only and include_rss and settings.scheduled_refresh_rss_enabled:
                 feed_urls = settings.scheduled_refresh_rss_feed_list
                 for feed_url in feed_urls:
                     source_detail = RefreshSourceDetail(
@@ -139,6 +147,8 @@ async def execute_scheduled_refresh(
                                 existing_urls=set(),
                                 existing_signatures=set(),
                                 skills_map=skills_id_map,
+                                feed_title=feed_meta.get("title"),
+                                feed_url=valid_url,
                             )
                             if preview_item.errors:
                                 continue
@@ -147,7 +157,7 @@ async def execute_scheduled_refresh(
 
                             # Check if opportunity already exists
                             stmt = select(Opportunity).where(
-                                Opportunity.source_name == "RSS",
+                                Opportunity.source_name.in_(["RSS", "We Work Remotely"]),
                                 Opportunity.external_id == sanitized_ext_id,
                             )
                             res = await db.execute(stmt)
@@ -172,6 +182,14 @@ async def execute_scheduled_refresh(
                                     summary.total_duplicates += 1
                             else:
                                 # New item: Insert with status='Draft'
+                                rss_source_name = (
+                                    "We Work Remotely"
+                                    if (
+                                        "weworkremotely" in feed_url.lower()
+                                        or (preview_item.publisher and "we work remotely" in str(preview_item.publisher).lower())
+                                    )
+                                    else "RSS"
+                                )
                                 try:
                                     async with db.begin_nested():
                                         new_opp = Opportunity(
@@ -195,7 +213,7 @@ async def execute_scheduled_refresh(
                                             salary_min=preview_item.salary_min,
                                             salary_max=preview_item.salary_max,
                                             currency=preview_item.currency[:10] if preview_item.currency else "USD",
-                                            source_name="RSS",
+                                            source_name=rss_source_name,
                                             source_url=getattr(preview_item, "source_url", None),
                                             external_id=sanitized_ext_id,
                                             status="Draft",  # Strictly Draft
@@ -219,7 +237,10 @@ async def execute_scheduled_refresh(
                                     source_detail.items_duplicate += 1
                                     summary.total_duplicates += 1
 
-                        await db.commit()
+                        if not dry_run:
+                            await db.commit()
+                        else:
+                            await db.rollback()
                     except Exception as e:
                         logger.error(f"Error refreshing RSS feed {feed_url}: {str(e)}")
                         source_detail.status = "error"
@@ -231,7 +252,7 @@ async def execute_scheduled_refresh(
             # -----------------------------------------------------------------
             # 3. Process JSearch (if enabled and configured)
             # -----------------------------------------------------------------
-            if settings.scheduled_refresh_jsearch_enabled:
+            if not auto_expire_only and include_jsearch and settings.scheduled_refresh_jsearch_enabled:
                 if not settings.jsearch_api_key or not settings.jsearch_api_key.strip():
                     summary.sources.append(
                         RefreshSourceDetail(
@@ -338,7 +359,10 @@ async def execute_scheduled_refresh(
                                     jsearch_detail.items_duplicate += 1
                                     summary.total_duplicates += 1
 
-                        await db.commit()
+                        if not dry_run:
+                            await db.commit()
+                        else:
+                            await db.rollback()
                     except Exception as e:
                         logger.error(f"Error refreshing JSearch: {str(e)}")
                         jsearch_detail.status = "error"
@@ -346,14 +370,32 @@ async def execute_scheduled_refresh(
                         summary.errors.append(f"JSearch: {str(e)}")
 
                     summary.sources.append(jsearch_detail)
+            elif not auto_expire_only and not include_jsearch and settings.scheduled_refresh_jsearch_enabled:
+                summary.sources.append(
+                    RefreshSourceDetail(
+                        source="JSearch",
+                        target="RapidAPI",
+                        status="skipped",
+                        error="JSearch skipped by request parameter (quota protection).",
+                    )
+                )
 
             # -----------------------------------------------------------------
             # 4. Auto-Expire Overdue Published Opportunities
             # -----------------------------------------------------------------
-            if settings.scheduled_refresh_auto_expire:
+            if settings.scheduled_refresh_auto_expire or auto_expire_only:
                 try:
-                    expired_count = await expire_overdue_opportunities(db)
-                    summary.total_expired = expired_count
+                    if dry_run:
+                        stmt = select(Opportunity).where(
+                            Opportunity.status == "Published",
+                            Opportunity.deadline.isnot(None),
+                            Opportunity.deadline < utcnow(),
+                        )
+                        res = await db.execute(stmt)
+                        summary.total_expired = len(res.scalars().all())
+                    else:
+                        expired_count = await expire_overdue_opportunities(db)
+                        summary.total_expired = expired_count
                 except Exception as e:
                     logger.error(f"Error during auto-expiration: {str(e)}")
                     summary.errors.append(f"Auto-expiration: {str(e)}")
@@ -363,7 +405,10 @@ async def execute_scheduled_refresh(
             summary.duration_seconds = round((end_time - start_time).total_seconds(), 2)
             summary.is_running = False
 
-            if not summary.errors:
+            if dry_run:
+                summary.errors.append("Dry-run preview mode: database modifications were safely rolled back.")
+
+            if not summary.errors or (dry_run and len(summary.errors) == 1):
                 summary.status = "success"
             elif summary.total_inserted > 0 or summary.total_updated > 0:
                 summary.status = "partial_failure"

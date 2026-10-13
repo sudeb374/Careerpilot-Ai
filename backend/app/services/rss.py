@@ -49,12 +49,15 @@ APPROVED_RSS_PRESETS: list[RssPresetFeed] = [
         description="Remote cloud, infrastructure, and systems administration listings.",
     ),
     RssPresetFeed(
-        id="remoteok-dev",
-        name="RemoteOK — Tech Openings",
-        url="https://remoteok.com/remote-jobs.rss",
-        description="Global remote technology and engineering positions.",
+        id="weworkremotely-fullstack",
+        name="We Work Remotely — Full-Stack Programming",
+        url="https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss",
+        description="Curated full-stack engineering and software development openings.",
     ),
 ]
+
+MAX_FEED_RESPONSE_BYTES = 5 * 1024 * 1024  # 5 MB
+
 
 
 def clean_html_text(text: str | None) -> str:
@@ -317,6 +320,8 @@ def normalize_rss_item(
     existing_urls: set[str],
     existing_signatures: set[str],
     skills_map: dict[str, Skill],
+    feed_title: str | None = None,
+    feed_url: str | None = None,
 ) -> JobPreviewItem:
     """
     Normalize raw RSS item into JobPreviewItem with shared validation:
@@ -325,6 +330,7 @@ def normalize_rss_item(
     - Detects classification conflict (Intern vs Full-Time)
     - Extracts canonical skills
     - Performs cross-source duplicate detection (external_id, application_url, and title+company signature)
+    - Preserves source attribution and original job link
     """
     warnings: list[str] = []
     errors: list[str] = []
@@ -452,6 +458,16 @@ def normalize_rss_item(
 
     review_required = bool(classification_conflict or warnings or unmapped_skills or errors)
 
+    publisher = "RSS Feed"
+    if feed_title and "we work remotely" in feed_title.lower():
+        publisher = "We Work Remotely"
+    elif feed_url and "weworkremotely.com" in feed_url.lower():
+        publisher = "We Work Remotely"
+    elif raw_link and "weworkremotely.com" in str(raw_link).lower():
+        publisher = "We Work Remotely"
+    elif feed_title and feed_title.strip():
+        publisher = clean_html_text(feed_title)[:50]
+
     return JobPreviewItem(
         job_id=job_id,
         title=title,
@@ -464,7 +480,7 @@ def normalize_rss_item(
         locations=locations,
         eligibility=None,
         application_url=application_url,
-        publisher="RSS Feed",
+        publisher=publisher,
         posted_at=posted_at,
         deadline=None,
         salary_min=None,
@@ -484,7 +500,7 @@ def normalize_rss_item(
 
 
 async def fetch_feed_content(url: str, timeout: float = 15.0) -> str:
-    """Fetch raw XML content from a validated feed URL with timeout bounds."""
+    """Fetch raw XML content from a validated feed URL with timeout bounds and response size protection."""
     headers = {
         "User-Agent": "CareerPilot-AI-FeedReader/1.0 (+https://careerpilot.ai)",
         "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
@@ -492,10 +508,33 @@ async def fetch_feed_content(url: str, timeout: float = 15.0) -> str:
     try:
         async with httpx.AsyncClient(timeout=timeout, follow_redirects=True, max_redirects=3) as client:
             resp = await client.get(url, headers=headers)
+            if resp.status_code == 410:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Feed provider indicates this endpoint has been permanently removed (HTTP 410 Gone). Please select another preset or update the feed URL.",
+                )
+            if resp.status_code == 404:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Feed provider returned HTTP 404 (Not Found). The RSS feed URL may have changed or does not exist.",
+                )
+            if resp.status_code == 403:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Feed provider returned HTTP 403 (Forbidden). The feed may require authentication or block automated requests.",
+                )
             if resp.status_code >= 400:
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Feed provider responded with HTTP error {resp.status_code}.",
+                    detail=f"Feed provider responded with HTTP error {resp.status_code}. The remote feed is unavailable.",
+                )
+
+            # Check response size bounds
+            content_bytes = resp.content
+            if len(content_bytes) > MAX_FEED_RESPONSE_BYTES:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Feed response exceeds maximum permitted size of {MAX_FEED_RESPONSE_BYTES // (1024 * 1024)} MB.",
                 )
             return resp.text
     except httpx.TimeoutException:
@@ -564,6 +603,8 @@ async def preview_rss_feed(
             existing_urls=existing_urls,
             existing_signatures=existing_signatures,
             skills_map=skills_map,
+            feed_title=feed_meta.get("title"),
+            feed_url=clean_url,
         )
         if job_item.is_duplicate:
             duplicate_count += 1
@@ -685,7 +726,14 @@ async def import_rss_jobs(
             stipend_min=item.stipend_min,
             stipend_max=item.stipend_max,
             currency=item.currency[:10] if item.currency else None,
-            source_name="RSS",
+            source_name=(
+                "We Work Remotely"
+                if (
+                    (getattr(item, "publisher", None) and "we work remotely" in str(item.publisher).lower())
+                    or (item.application_url and "weworkremotely.com" in item.application_url.lower())
+                )
+                else (str(item.publisher)[:50] if getattr(item, "publisher", None) else "RSS")
+            ),
             source_url=(item.application_url[:500] if item.application_url else None),
             external_id=sanitized_ext_id,
             status="Draft",  # Never silently published

@@ -141,54 +141,58 @@ async def test_matching_api():
     # Override auth
     app.dependency_overrides[get_current_user] = lambda: TEST_USER_ID
 
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        # 2. authenticated request single match -> 200
-        res = await client.get(f"/api/v1/opportunities/{data['high_id']}/match")
-        assert res.status_code == 200
-        json_data = res.json()
-        assert "score" in json_data
-        assert "data_coverage" in json_data
-        
-        # Privacy check
-        assert "email" not in str(json_data).lower()
-        assert "phone" not in str(json_data).lower()
-
-        # 3. Draft/Closed/Expired -> 404
-        for opp_id in [data['draft_id'], data['closed_id'], data['exp_id']]:
-            res = await client.get(f"/api/v1/opportunities/{opp_id}/match")
-            assert res.status_code == 404
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # 2. authenticated request single match -> 200
+            res = await client.get(f"/api/v1/opportunities/{data['high_id']}/match")
+            assert res.status_code == 200
+            json_data = res.json()
+            assert "score" in json_data
+            assert "data_coverage" in json_data
             
-        # Non-existent -> 404
-        res = await client.get(f"/api/v1/opportunities/{uuid4()}/match")
-        assert res.status_code == 404
+            # Privacy check
+            assert "email" not in str(json_data).lower()
+            assert "phone" not in str(json_data).lower()
 
-        # 4. Ranked list match with distinct scores
-        res = await client.get("/api/v1/profile/opportunity-matches?page=1&page_size=10")
-        assert res.status_code == 200
-        list_data = res.json()
-        
-        assert "items" in list_data
-        items = list_data["items"]
-        assert len(items) >= 3
-        
-        # Ensure draft/closed/expired are not in the results
-        returned_ids = [item["opportunity"]["id"] for item in items]
-        assert str(data['draft_id']) not in returned_ids
-        assert str(data['closed_id']) not in returned_ids
-        assert str(data['exp_id']) not in returned_ids
-        
-        # Verify Descending Order
-        scores = [item["match"]["score"] for item in items]
-        assert scores == sorted(scores, reverse=True), "Scores are not sorted in descending order"
-        
-        # Assert at least three distinct scores
-        distinct_scores = set(scores)
-        assert len(distinct_scores) >= 3, "Did not get at least 3 distinct scores for ranking validation"
-        
-        # Test pagination
-        res_pag = await client.get("/api/v1/profile/opportunity-matches?page=1&page_size=2")
-        assert res_pag.status_code == 200
-        pag_data = res_pag.json()
-        assert len(pag_data["items"]) == 2
-        assert pag_data["page_size"] == 2
-        assert pag_data["total"] >= 3
+            # 3. Draft/Closed/Expired -> 404
+            for opp_id in [data['draft_id'], data['closed_id'], data['exp_id']]:
+                res = await client.get(f"/api/v1/opportunities/{opp_id}/match")
+                assert res.status_code == 404
+                
+            # Non-existent -> 404
+            res = await client.get(f"/api/v1/opportunities/{uuid4()}/match")
+            assert res.status_code == 404
+
+            # 4. Ranked list match with distinct scores
+            res = await client.get("/api/v1/profile/opportunity-matches?page=1&page_size=10")
+            assert res.status_code == 200
+            list_data = res.json()
+            
+            assert "items" in list_data
+            items = list_data["items"]
+            assert len(items) >= 3
+            
+            # Ensure draft/closed/expired are not in the results
+            returned_ids = [item["opportunity"]["id"] for item in items]
+            assert str(data['draft_id']) not in returned_ids
+            assert str(data['closed_id']) not in returned_ids
+            assert str(data['exp_id']) not in returned_ids
+            
+            # Verify Descending Order
+            scores = [item["match"]["score"] for item in items]
+            assert scores == sorted(scores, reverse=True), "Scores are not sorted in descending order"
+            
+            # Assert at least three distinct scores
+            distinct_scores = set(scores)
+            assert len(distinct_scores) >= 3, "Did not get at least 3 distinct scores for ranking validation"
+            
+            # Test pagination
+            res_pag = await client.get("/api/v1/profile/opportunity-matches?page=1&page_size=2")
+            assert res_pag.status_code == 200
+            pag_data = res_pag.json()
+            assert len(pag_data["items"]) == 2
+            assert pag_data["page_size"] == 2
+            assert pag_data["total"] >= 3
+    finally:
+        app.dependency_overrides.clear()
+

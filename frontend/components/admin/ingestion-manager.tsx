@@ -47,6 +47,8 @@ import {
   FileText,
   RefreshCw,
   Clock,
+  Download,
+  HelpCircle,
 } from "lucide-react";
 
 export interface MatchedSkill {
@@ -128,10 +130,10 @@ const RSS_PRESETS = [
     description: "Remote cloud, infrastructure, and systems administration listings.",
   },
   {
-    id: "remoteok-dev",
-    name: "RemoteOK — Tech Openings",
-    url: "https://remoteok.com/remote-jobs.rss",
-    description: "Global remote technology and engineering positions.",
+    id: "weworkremotely-fullstack",
+    name: "We Work Remotely — Full-Stack Programming",
+    url: "https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss",
+    description: "Curated full-stack engineering and software development openings.",
   },
   {
     id: "custom",
@@ -189,10 +191,13 @@ export function IngestionManager() {
   } | null>(null);
   const [triggeringRefresh, setTriggeringRefresh] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+  const [showScheduleDetails, setShowScheduleDetails] = useState(false);
+  const [showTemplateGuide, setShowTemplateGuide] = useState(false);
+  const [refreshIncludeJsearch, setRefreshIncludeJsearch] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [errorType, setErrorType] = useState<"config" | "rate_limit" | "import" | "generic" | null>(null);
+  const [errorType, setErrorType] = useState<"config" | "rate_limit" | "import" | "rss" | "generic" | null>(null);
 
   const [jobs, setJobs] = useState<JobPreview[]>([]);
   const [summary, setSummary] = useState<PreviewSummary | null>(null);
@@ -312,6 +317,7 @@ export function IngestionManager() {
       });
 
       if (!res.ok) {
+        setErrorType("rss");
         const errJson = await res.json().catch(() => null);
         throw new Error(errJson?.detail || `Feed request failed with status ${res.status}`);
       }
@@ -333,6 +339,7 @@ export function IngestionManager() {
       });
       setSelectedJobIds(autoSelected);
     } catch (err) {
+      setErrorType("rss");
       setError(err instanceof Error ? err.message : "Failed to fetch and preview RSS feed.");
     } finally {
       setLoading(false);
@@ -388,10 +395,13 @@ export function IngestionManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Administrator session required.");
 
-      const res = await fetch(`${API_URL}/api/v1/admin/ingestion/refresh/trigger?force=true`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/v1/admin/ingestion/refresh/trigger?force=true&include_jsearch=${refreshIncludeJsearch}`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
+      );
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.detail || "Refresh failed");
@@ -404,6 +414,139 @@ export function IngestionManager() {
     } finally {
       setTriggeringRefresh(false);
     }
+  };
+
+  const downloadCsvTemplate = () => {
+    const headers = [
+      "title",
+      "company_name",
+      "opportunity_type",
+      "work_model",
+      "locations",
+      "application_url",
+      "company_website",
+      "description",
+      "deadline",
+      "stipend_min",
+      "stipend_max",
+      "currency",
+      "skills",
+      "domain",
+      "eligibility",
+    ];
+    const sampleRows = [
+      [
+        "Software Engineer Intern",
+        "Acme Innovations",
+        "Internship",
+        "Remote",
+        "San Francisco, CA; Bengaluru, India",
+        "https://example.com/careers/swe-intern-2026",
+        "https://example.com",
+        "Join our engineering team to build scalable modern web applications with Python and React.",
+        "2026-12-31T23:59:59Z",
+        "1500",
+        "2500",
+        "USD",
+        "Python, React, PostgreSQL",
+        "Software Engineering",
+        "Currently pursuing Bachelor's or Master's in CS or related field",
+      ],
+      [
+        "Frontend Developer Intern",
+        "Nexus Cloud Labs",
+        "Internship",
+        "Hybrid",
+        "New York, NY",
+        "https://example.com/careers/frontend-intern",
+        "https://example.com",
+        "Develop interactive web interfaces using TypeScript, Next.js, and modern CSS techniques.",
+        "2026-11-30T23:59:59Z",
+        "1200",
+        "2000",
+        "USD",
+        "React, JavaScript, TypeScript, CSS",
+        "Frontend Development",
+        "Graduating class of 2026 or 2027",
+      ],
+    ];
+
+    const escapeCsv = (val: string) => {
+      if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+
+    const csvContent = [
+      headers.join(","),
+      ...sampleRows.map((r) => r.map(escapeCsv).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "careerpilot_bulk_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadJsonTemplate = () => {
+    const sampleData = {
+      jobs: [
+        {
+          title: "Software Engineer Intern",
+          company_name: "Acme Innovations",
+          opportunity_type: "Internship",
+          work_model: "Remote",
+          locations: ["San Francisco, CA", "Bengaluru, India"],
+          application_url: "https://example.com/careers/swe-intern-2026",
+          company_website: "https://example.com",
+          description:
+            "Join our engineering team to build scalable modern web applications with Python and React.",
+          deadline: "2026-12-31T23:59:59Z",
+          stipend_min: 1500,
+          stipend_max: 2500,
+          currency: "USD",
+          skills: "Python, React, PostgreSQL",
+          domain: "Software Engineering",
+          eligibility:
+            "Currently pursuing Bachelor's or Master's in CS or related field",
+        },
+        {
+          title: "Frontend Developer Intern",
+          company_name: "Nexus Cloud Labs",
+          opportunity_type: "Internship",
+          work_model: "Hybrid",
+          locations: ["New York, NY"],
+          application_url: "https://example.com/careers/frontend-intern",
+          company_website: "https://example.com",
+          description:
+            "Develop interactive web interfaces using TypeScript, Next.js, and modern CSS techniques.",
+          deadline: "2026-11-30T23:59:59Z",
+          stipend_min: 1200,
+          stipend_max: 2000,
+          currency: "USD",
+          skills: "React, JavaScript, TypeScript, CSS",
+          domain: "Frontend Development",
+          eligibility: "Graduating class of 2026 or 2027",
+        },
+      ],
+    };
+
+    const jsonContent = JSON.stringify(sampleData, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "careerpilot_bulk_template.json");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleBulkPreview = async (e?: React.FormEvent) => {
@@ -645,60 +788,100 @@ export function IngestionManager() {
 
       {/* Background Scheduled Refresh & Auto-Expiration Status Banner */}
       {refreshStatus && (
-        <div className="rounded-xl border border-border/80 bg-muted/40 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary mt-0.5">
-              <Clock className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground text-sm">Automated Refresh &amp; Deadline Expiration (Phase 6.4)</span>
-                <Badge variant={refreshStatus.enabled ? "default" : "secondary"} className="text-xs">
-                  {refreshStatus.enabled ? "Schedule: Enabled" : "Schedule: Standby"}
-                </Badge>
-                {refreshStatus.auto_expire && (
-                  <Badge variant="outline" className="text-xs text-amber-600 dark:text-amber-400 border-amber-500/30">
-                    Auto-Expire Active
+        <div className="rounded-xl border border-border/80 bg-muted/40 p-4 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary mt-0.5">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-foreground text-sm">Automated Refresh &amp; Deadline Expiration (Phase 6.4)</span>
+                  <Badge variant={refreshStatus.enabled ? "default" : "secondary"} className="text-xs">
+                    {refreshStatus.enabled ? "Schedule: Active (External Runner)" : "Schedule: Standby (Manual / External CLI)"}
                   </Badge>
+                  {refreshStatus.auto_expire && (
+                    <Badge variant="outline" className="text-xs text-amber-600 dark:text-amber-400 border-amber-500/30">
+                      Auto-Expire Active
+                    </Badge>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowScheduleDetails(!showScheduleDetails)}
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline ml-1 font-medium"
+                  >
+                    <HelpCircle className="h-3.5 w-3.5" />
+                    {showScheduleDetails ? "Hide Architecture" : "Why Standby? Architecture & Cron Guide"}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {refreshStatus.last_summary?.last_run_at ? (
+                    <>
+                      Last sync: {new Date(refreshStatus.last_summary.last_run_at).toLocaleString()} ({refreshStatus.last_summary.status}) —{" "}
+                      <strong>{refreshStatus.last_summary.total_inserted}</strong> new,{" "}
+                      <strong>{refreshStatus.last_summary.total_updated}</strong> updated,{" "}
+                      <strong>{refreshStatus.last_summary.total_expired}</strong> expired.
+                    </>
+                  ) : (
+                    <>Periodic sync of authorized RSS feeds and JSearch with past-deadline auto-expiration of published opportunities.</>
+                  )}
+                </p>
+                {refreshMessage && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{refreshMessage}</p>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {refreshStatus.last_summary?.last_run_at ? (
+            </div>
+            <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleTriggerRefresh}
+                disabled={triggeringRefresh || loading}
+                className="shrink-0"
+              >
+                {triggeringRefresh ? (
                   <>
-                    Last sync: {new Date(refreshStatus.last_summary.last_run_at).toLocaleString()} ({refreshStatus.last_summary.status}) —{" "}
-                    <strong>{refreshStatus.last_summary.total_inserted}</strong> new,{" "}
-                    <strong>{refreshStatus.last_summary.total_updated}</strong> updated,{" "}
-                    <strong>{refreshStatus.last_summary.total_expired}</strong> expired.
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Synchronizing...
                   </>
                 ) : (
-                  <>Periodic sync of authorized RSS feeds and JSearch with past-deadline auto-expiration to Closed/Expired.</>
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Run Refresh &amp; Expire
+                  </>
                 )}
-              </p>
-              {refreshMessage && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{refreshMessage}</p>
-              )}
+              </Button>
+              <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={refreshIncludeJsearch}
+                  onChange={(e) => setRefreshIncludeJsearch(e.target.checked)}
+                  className="rounded border-border text-primary h-3 w-3"
+                />
+                <span>Include JSearch API (quota guard)</span>
+              </label>
             </div>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleTriggerRefresh}
-            disabled={triggeringRefresh || loading}
-            className="shrink-0"
-          >
-            {triggeringRefresh ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Synchronizing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Run Refresh &amp; Expire
-              </>
-            )}
-          </Button>
+
+          {/* Collapsible Architecture & Setup Guide */}
+          {showScheduleDetails && (
+            <div className="mt-3 p-3.5 rounded-lg bg-background/80 border border-border/70 text-xs text-muted-foreground space-y-2">
+              <div className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
+                <Info className="h-4 w-4 text-primary" />
+                Process &amp; Deployment Architecture Guide
+              </div>
+              <p>
+                • <strong>Why Standby?</strong> In multi-worker FastAPI deployments (e.g. Uvicorn/Gunicorn), running an internal background timer in each worker process causes duplicate concurrent job executions and burns API quota. CareerPilot AI delegates background runs to the standalone CLI runner <code>python -m app.cli.scheduled_refresh</code>.
+              </p>
+              <p>
+                • <strong>Configuring External Automation:</strong> To enable recurring execution on your deployment server, configure an external OS cron job (e.g. <code>0 */6 * * * python -m app.cli.scheduled_refresh</code>) or Cloud Scheduler job, and set <code>SCHEDULED_REFRESH_ENABLED=true</code> in <code>backend/.env</code>.
+              </p>
+              <p>
+                • <strong>Safe Manual Sync:</strong> Clicking &quot;Run Refresh &amp; Expire&quot; above executes safe on-demand synchronization and past-deadline expiration immediately. By default, JSearch is excluded to preserve your monthly RapidAPI allowance unless the quota guard checkbox is checked.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -969,8 +1152,8 @@ export function IngestionManager() {
                   <Badge variant="outline" className="text-xs font-medium border-blue-500/30 text-blue-600 dark:text-blue-400">Phase 6.4</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-                  Upload job listings from partner companies, college drives, and manual sources without brittle web scrapers.
-                  Validates file size (max 5 MB, up to 500 rows) and sanitizes HTML. Imported opportunities are saved strictly as <strong>Draft</strong>.
+                  Upload opportunity listings from partner organizations, campus drives, and verified spreadsheets without fragile HTML scrapers.
+                  Validates file size (max 5 MB, up to 500 rows) and sanitizes markup. All imported opportunities are saved strictly as <strong>Draft</strong>.
                 </p>
               </div>
             </div>
@@ -979,6 +1162,107 @@ export function IngestionManager() {
               <span>.csv or .json (UTF-8)</span>
             </div>
           </div>
+
+          {/* 4-Step Ingestion Workflow Guide */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+            <div className="p-3 rounded-lg border border-border/70 bg-card shadow-xs flex items-center gap-2.5">
+              <span className="font-bold text-primary bg-primary/10 rounded-full h-5 w-5 flex items-center justify-center shrink-0 text-xs">1</span>
+              <div>
+                <div className="font-medium text-foreground">Upload File</div>
+                <div className="text-[11px] text-muted-foreground">CSV or JSON (max 5 MB)</div>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg border border-border/70 bg-card shadow-xs flex items-center gap-2.5">
+              <span className="font-bold text-primary bg-primary/10 rounded-full h-5 w-5 flex items-center justify-center shrink-0 text-xs">2</span>
+              <div>
+                <div className="font-medium text-foreground">Validate &amp; Preview</div>
+                <div className="text-[11px] text-muted-foreground">Sanitized &amp; deduped</div>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg border border-border/70 bg-card shadow-xs flex items-center gap-2.5">
+              <span className="font-bold text-primary bg-primary/10 rounded-full h-5 w-5 flex items-center justify-center shrink-0 text-xs">3</span>
+              <div>
+                <div className="font-medium text-foreground">Select Valid Rows</div>
+                <div className="text-[11px] text-muted-foreground">Resolve warnings/errors</div>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg border border-border/70 bg-card shadow-xs flex items-center gap-2.5">
+              <span className="font-bold text-primary bg-primary/10 rounded-full h-5 w-5 flex items-center justify-center shrink-0 text-xs">4</span>
+              <div>
+                <div className="font-medium text-foreground">Import as Draft</div>
+                <div className="text-[11px] text-muted-foreground">Admin review before publish</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Downloadable Templates Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Download className="h-5 w-5 text-primary" />
+                    Downloadable Templates &amp; Format Specifications
+                  </CardTitle>
+                  <CardDescription>
+                    Download pre-formatted CSV and JSON templates containing required columns and sample rows.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={downloadCsvTemplate} className="text-xs">
+                    <Download className="mr-1.5 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    Download CSV Template
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={downloadJsonTemplate} className="text-xs">
+                    <Download className="mr-1.5 h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    Download JSON Template
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTemplateGuide(!showTemplateGuide)}
+                    className="text-xs text-muted-foreground"
+                  >
+                    <Info className="mr-1 h-3.5 w-3.5" />
+                    {showTemplateGuide ? "Hide Format Guide" : "View Format Guide"}
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs text-amber-800 dark:text-amber-400 flex items-start gap-2.5">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <strong>Template Sample Data Notice:</strong> The downloaded templates contain example demonstration records. Review and replace each entry with your authentic employer or drive data before importing. Imported opportunities are strictly saved as <strong>Draft</strong> and will not be published or visible to students until administrator review.
+                </div>
+              </div>
+
+              {showTemplateGuide && (
+                <div className="p-3.5 rounded-lg bg-muted/40 border border-border/70 text-xs space-y-2">
+                  <div className="font-semibold text-foreground">Accepted Field Specifications (CSV headers or JSON keys):</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-muted-foreground">
+                    <div>• <strong>title</strong> (Required): Role title, max 255 chars</div>
+                    <div>• <strong>company_name</strong> (Required): Employer name, max 255 chars</div>
+                    <div>• <strong>opportunity_type</strong>: &apos;Internship&apos; or &apos;Full-Time&apos;</div>
+                    <div>• <strong>work_model</strong>: &apos;Remote&apos;, &apos;Hybrid&apos;, or &apos;On-site&apos;</div>
+                    <div>• <strong>locations</strong>: Comma-separated list or JSON array</div>
+                    <div>• <strong>application_url</strong>: Valid http:// or https:// URL (max 500 chars)</div>
+                    <div>• <strong>company_website</strong>: Valid company URL (max 500 chars)</div>
+                    <div>• <strong>deadline</strong>: ISO-8601 date (e.g. 2026-12-31T23:59:59Z)</div>
+                    <div>• <strong>stipend_min / stipend_max</strong>: Monthly stipend integer</div>
+                    <div>• <strong>salary_min / salary_max</strong>: Annual salary integer</div>
+                    <div>• <strong>currency</strong>: Currency code (e.g. USD, INR)</div>
+                    <div>• <strong>skills</strong>: Comma-separated canonical skills</div>
+                    <div>• <strong>domain, eligibility, education_requirements</strong>: Sanitized text</div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/80 pt-1">
+                    Limits: Maximum 5 MB per file, maximum 500 rows per batch. HTML script blocks and markup tags are automatically stripped for security.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Bulk Upload Form */}
           <Card>
@@ -1038,14 +1322,14 @@ export function IngestionManager() {
       {error && (
         <div
           className={`p-4 rounded-xl border flex items-start gap-3 ${
-            errorType === "config"
-              ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
+            errorType === "config" || errorType === "rss"
+              ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400"
               : errorType === "rate_limit"
               ? "bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400"
               : "bg-destructive/10 border-destructive/30 text-destructive"
           }`}
         >
-          {errorType === "config" ? (
+          {errorType === "config" || errorType === "rss" ? (
             <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
           ) : (
             <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
@@ -1056,6 +1340,8 @@ export function IngestionManager() {
                 ? "Provider Configuration Required"
                 : errorType === "rate_limit"
                 ? "Rate Limit or Allowance Exceeded"
+                : errorType === "rss"
+                ? "RSS Feed Provider Unavailable"
                 : errorType === "import"
                 ? "Job Import Failed"
                 : "Ingestion Query Error"}
@@ -1064,6 +1350,11 @@ export function IngestionManager() {
             {errorType === "config" && (
               <p className="text-xs text-muted-foreground mt-2">
                 Tip: Add <code>JSEARCH_API_KEY=&lt;your_key&gt;</code> to your <code>backend/.env</code> file and restart the backend server.
+              </p>
+            )}
+            {errorType === "rss" && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Tip: Select a verified preset from the list (such as We Work Remotely) or check that the custom feed URL is publicly accessible and returns valid RSS/Atom XML.
               </p>
             )}
           </div>

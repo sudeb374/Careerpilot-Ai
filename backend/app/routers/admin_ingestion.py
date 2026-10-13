@@ -254,6 +254,10 @@ async def get_refresh_status(
 )
 async def trigger_refresh(
     force: bool = Query(True, description="Force run even if scheduled refresh is disabled in settings"),
+    include_jsearch: bool = Query(False, description="Whether to include JSearch (consumes RapidAPI quota)"),
+    include_rss: bool = Query(True, description="Whether to include authorized RSS feeds"),
+    auto_expire_only: bool = Query(False, description="Run only deadline auto-expiration without external network calls"),
+    dry_run: bool = Query(False, description="Dry-run simulation without committing database modifications"),
     db: AsyncSession = Depends(get_db),  # noqa: B008
     admin_user: Profile = Depends(require_admin),  # noqa: B008
 ):
@@ -272,11 +276,16 @@ async def trigger_refresh(
         db=db,
         admin_profile_id=admin_user.id,
         force=force,
+        include_jsearch=include_jsearch,
+        include_rss=include_rss,
+        auto_expire_only=auto_expire_only,
+        dry_run=dry_run,
     )
 
     return RefreshTriggerResponse(
-        message="Refresh execution completed.",
+        message="Refresh execution completed." if not dry_run else "Dry-run execution completed (no changes committed).",
         status=summary.status,
         summary=summary,
     )
+
 

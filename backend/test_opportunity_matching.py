@@ -61,11 +61,14 @@ async def cleanup_test_data(db, data):
     # So we don't need to delete from Opportunity.__table__ or OpportunitySkill.__table__ here!
     await db.commit()
 
+from unittest.mock import patch
+
 @pytest.mark.anyio
 async def test_matching_logic():
-    async with async_session_factory() as db:
-        data = await setup_test_data(db)
-        profile = data["profile"]
+    with patch('app.services.matching.is_model_available', return_value=False):
+        async with async_session_factory() as db:
+            data = await setup_test_data(db)
+            profile = data["profile"]
         
         # Candidate Evidence
         # Profile Skill: Python

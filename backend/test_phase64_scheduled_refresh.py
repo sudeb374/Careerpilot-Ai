@@ -442,16 +442,21 @@ async def test_scheduled_refresh_jsearch_quota_and_error_isolation():
 @pytest.mark.anyio
 async def test_endpoints_unauthenticated():
     """Verify bulk upload and refresh endpoints reject unauthenticated requests."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        res1 = await client.post("/api/v1/admin/ingestion/bulk-upload/preview")
-        assert res1.status_code == 401
+    app.dependency_overrides.clear()
+    try:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            res1 = await client.post("/api/v1/admin/ingestion/bulk-upload/preview")
+            assert res1.status_code == 401
 
-        res2 = await client.get("/api/v1/admin/ingestion/refresh/status")
-        assert res2.status_code == 401
+            res2 = await client.get("/api/v1/admin/ingestion/refresh/status")
+            assert res2.status_code == 401
 
-        res3 = await client.post("/api/v1/admin/ingestion/refresh/trigger")
-        assert res3.status_code == 401
+            res3 = await client.post("/api/v1/admin/ingestion/refresh/trigger")
+            assert res3.status_code == 401
+    finally:
+        app.dependency_overrides.clear()
+
 
 
 @pytest.mark.anyio
@@ -541,3 +546,208 @@ async def test_admin_refresh_status_and_trigger_endpoints():
                 assert res_trig.json()["message"] == "Refresh execution completed."
     finally:
         app.dependency_overrides.clear()
+
+
+def test_approved_rss_presets_updated():
+    """Verify built-in RSS presets contain only verified, working feeds and remoteok is removed."""
+    from app.services.rss import APPROVED_RSS_PRESETS
+
+    preset_ids = [p.id for p in APPROVED_RSS_PRESETS]
+    assert "remoteok-dev" not in preset_ids
+    assert "weworkremotely-programming" in preset_ids
+    assert "weworkremotely-devops" in preset_ids
+    assert "weworkremotely-fullstack" in preset_ids
+
+    for preset in APPROVED_RSS_PRESETS:
+        assert preset.url.startswith("https://")
+        assert "weworkremotely.com" in preset.url
+
+
+@pytest.mark.anyio
+async def test_fetch_feed_content_http_status_errors_and_size_limit():
+    """Verify fetch_feed_content generates specific, actionable errors and enforces 5MB limit."""
+    from fastapi import HTTPException
+    from app.services.rss import MAX_FEED_RESPONSE_BYTES, fetch_feed_content
+
+    # 1. HTTP 410 Gone
+    mock_resp_410 = MagicMock()
+    mock_resp_410.status_code = 410
+    mock_resp_410.content = b"Gone"
+
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(return_value=mock_resp_410)
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_cls.return_value.__aenter__.return_value = mock_client
+        with pytest.raises(HTTPException) as exc:
+            await fetch_feed_content("https://example.com/feed.xml")
+        assert exc.value.status_code == 502
+        assert "permanently removed (HTTP 410 Gone)" in exc.value.detail
+
+    # 2. HTTP 404 Not Found
+    mock_resp_404 = MagicMock()
+    mock_resp_404.status_code = 404
+    mock_client.get = AsyncMock(return_value=mock_resp_404)
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_cls.return_value.__aenter__.return_value = mock_client
+        with pytest.raises(HTTPException) as exc:
+            await fetch_feed_content("https://example.com/feed.xml")
+        assert exc.value.status_code == 502
+        assert "HTTP 404 (Not Found)" in exc.value.detail
+
+    # 3. HTTP 403 Forbidden
+    mock_resp_403 = MagicMock()
+    mock_resp_403.status_code = 403
+    mock_client.get = AsyncMock(return_value=mock_resp_403)
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_cls.return_value.__aenter__.return_value = mock_client
+        with pytest.raises(HTTPException) as exc:
+            await fetch_feed_content("https://example.com/feed.xml")
+        assert exc.value.status_code == 502
+        assert "HTTP 403 (Forbidden)" in exc.value.detail
+
+    # 4. Oversized response (> 5MB)
+    mock_resp_big = MagicMock()
+    mock_resp_big.status_code = 200
+    mock_resp_big.content = b"A" * (MAX_FEED_RESPONSE_BYTES + 1024)
+    mock_client.get = AsyncMock(return_value=mock_resp_big)
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_cls.return_value.__aenter__.return_value = mock_client
+        with pytest.raises(HTTPException) as exc:
+            await fetch_feed_content("https://example.com/feed.xml")
+        assert exc.value.status_code == 502
+        assert "exceeds maximum permitted size of 5 MB" in exc.value.detail
+
+
+def test_bulk_upload_edge_cases_and_malformed_inputs():
+    """Verify malformed inputs, missing required fields, and prohibited schemes are safely caught."""
+    from fastapi import HTTPException
+
+    # 1. Malformed JSON
+    with pytest.raises(HTTPException) as exc:
+        parse_json_rows("{malformed json")
+    assert exc.value.status_code == 400
+    assert "Failed to parse JSON" in exc.value.detail
+
+    # 2. Missing required fields in normalize_bulk_row
+    item_no_title = normalize_bulk_row(
+        {"company_name": "Acme Inc"},
+        row_index=1,
+        existing_external_ids=set(),
+        existing_urls=set(),
+        existing_signatures=set(),
+        skills_map={},
+    )
+    assert "Title is required." in item_no_title.errors
+
+    item_no_company = normalize_bulk_row(
+        {"title": "Software Intern"},
+        row_index=1,
+        existing_external_ids=set(),
+        existing_urls=set(),
+        existing_signatures=set(),
+        skills_map={},
+    )
+    assert "Company name is required." in item_no_company.errors
+
+    # 3. Prohibited URL scheme (javascript:)
+    item_bad_url = normalize_bulk_row(
+        {
+            "title": "Software Intern",
+            "company_name": "Acme",
+            "application_url": "javascript:alert(document.cookie)",
+        },
+        row_index=1,
+        existing_external_ids=set(),
+        existing_urls=set(),
+        existing_signatures=set(),
+        skills_map={},
+    )
+    assert any("scheme" in e.lower() for e in item_bad_url.errors)
+
+    # 4. Invariant: Status must be Draft
+    assert item_bad_url.opportunity_type in ("Internship", "Full-Time")
+
+
+@pytest.mark.anyio
+async def test_scheduled_refresh_fine_grained_modes():
+    """Verify selective refresh execution: auto_expire_only, quota guard, and dry_run."""
+    mock_db = AsyncMock()
+    mock_res = MagicMock()
+    mock_res.scalars.return_value.all.return_value = []
+    mock_db.execute = AsyncMock(return_value=mock_res)
+
+    # 1. auto_expire_only=True
+    with patch("app.services.scheduled_refresh.expire_overdue_opportunities", AsyncMock(return_value=3)) as mock_expire:
+        summary = await execute_scheduled_refresh(
+            db=mock_db,
+            force=True,
+            auto_expire_only=True,
+        )
+        assert summary.status == "success"
+        assert summary.total_expired == 3
+        assert len(summary.sources) == 0  # Neither RSS nor JSearch executed
+        mock_expire.assert_awaited_once()
+
+    # 2. include_jsearch=False (Quota protection)
+    with patch("app.services.scheduled_refresh.expire_overdue_opportunities", AsyncMock(return_value=0)):
+        with patch("app.services.scheduled_refresh.fetch_feed_content", AsyncMock(return_value="<rss><channel></channel></rss>")):
+            with patch("app.services.scheduled_refresh.fetch_jsearch_jobs") as mock_jsearch:
+                summary = await execute_scheduled_refresh(
+                    db=mock_db,
+                    force=True,
+                    include_jsearch=False,
+                    include_rss=False,
+                )
+                assert summary.status == "success"
+                mock_jsearch.assert_not_called()
+                jsearch_sources = [s for s in summary.sources if s.source == "JSearch"]
+                assert len(jsearch_sources) == 1
+                assert jsearch_sources[0].status == "skipped"
+
+    # 3. dry_run=True (Rollback database modifications)
+    with patch("app.services.scheduled_refresh.expire_overdue_opportunities", AsyncMock(return_value=0)):
+        summary_dry = await execute_scheduled_refresh(
+            db=mock_db,
+            force=True,
+            include_jsearch=False,
+            include_rss=False,
+            dry_run=True,
+        )
+        assert summary_dry.status == "success"
+        assert any("dry-run" in err.lower() for err in summary_dry.errors)
+
+
+@pytest.mark.anyio
+async def test_cli_runner_options():
+    """Verify CLI runner executes with options without unhandled exceptions."""
+    from app.cli.scheduled_refresh import run_cli
+
+    mock_db = AsyncMock()
+    with patch("app.cli.scheduled_refresh.get_db_session") as mock_ctx:
+        mock_ctx.return_value.__aenter__.return_value = mock_db
+        with patch("app.cli.scheduled_refresh.execute_scheduled_refresh") as mock_exec:
+            mock_summary = get_last_refresh_summary()
+            mock_summary.status = "success"
+            mock_exec.return_value = mock_summary
+
+            code = await run_cli(
+                force=True,
+                include_jsearch=False,
+                include_rss=False,
+                auto_expire_only=True,
+                dry_run=True,
+            )
+            assert code == 0
+            mock_exec.assert_awaited_once_with(
+                db=mock_db,
+                force=True,
+                include_jsearch=False,
+                include_rss=False,
+                auto_expire_only=True,
+                dry_run=True,
+            )
+

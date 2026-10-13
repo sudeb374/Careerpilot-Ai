@@ -26,11 +26,26 @@ logging.basicConfig(
 logger = logging.getLogger("careerpilot.cli.scheduled_refresh")
 
 
-async def run_cli(force: bool = False) -> int:
+async def run_cli(
+    force: bool = False,
+    include_jsearch: bool = True,
+    include_rss: bool = True,
+    auto_expire_only: bool = False,
+    dry_run: bool = False,
+) -> int:
     """Execute scheduled refresh and return process exit code."""
-    logger.info(f"Starting scheduled refresh CLI (force={force})...")
+    logger.info(
+        f"Starting scheduled refresh CLI (force={force}, include_jsearch={include_jsearch}, include_rss={include_rss}, auto_expire_only={auto_expire_only}, dry_run={dry_run})..."
+    )
     async with get_db_session() as db:
-        summary = await execute_scheduled_refresh(db=db, force=force)
+        summary = await execute_scheduled_refresh(
+            db=db,
+            force=force,
+            include_jsearch=include_jsearch,
+            include_rss=include_rss,
+            auto_expire_only=auto_expire_only,
+            dry_run=dry_run,
+        )
 
     print("\n" + "=" * 60)
     print("CareerPilot AI — Scheduled Refresh Execution Summary")
@@ -71,11 +86,40 @@ def main():
         action="store_true",
         help="Force execution even if scheduled refresh is disabled in configuration.",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate refresh cycle and roll back all database modifications.",
+    )
+    parser.add_argument(
+        "--no-jsearch",
+        action="store_true",
+        help="Skip JSearch RapidAPI query to preserve API quota.",
+    )
+    parser.add_argument(
+        "--no-rss",
+        action="store_true",
+        help="Skip RSS feed ingestion.",
+    )
+    parser.add_argument(
+        "--expire-only",
+        action="store_true",
+        help="Run only deadline-based auto-expiration without external network calls.",
+    )
     args = parser.parse_args()
 
-    exit_code = asyncio.run(run_cli(force=args.force))
+    exit_code = asyncio.run(
+        run_cli(
+            force=args.force,
+            include_jsearch=not args.no_jsearch,
+            include_rss=not args.no_rss,
+            auto_expire_only=args.expire_only,
+            dry_run=args.dry_run,
+        )
+    )
     sys.exit(exit_code)
 
 
 if __name__ == "__main__":
     main()
+
