@@ -62,7 +62,7 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 | 4     | Resume intelligence                                    | Complete    |
 | 5     | AI matching engine                                     | Complete    |
 | 6     | Authorized automated ingestion                         | Complete    |
-| 7     | Career copilot                                         | In Progress (Phase 7.1 Complete) |
+| 7     | Career copilot                                         | In Progress (Phase 7.1 & 7.2 Complete) |
 | 8     | Application tracker                                    | Planned     |
 | 9     | Testing and evaluation                                 | Planned     |
 | 10    | Deployment and presentation                            | Planned     |
@@ -93,6 +93,13 @@ Scraping will only be reconsidered if an authorized provider explicitly allows a
   - Clear identification and honest messaging for insufficient profile data or zero matching job postings.
   - Interactive profile skill saving directly from active-resume evidence or gap recommendations.
   - Heuristic skill coverage metric with score integrity disclaimers (preventing hiring probability claims).
+
+- **Phase 7.2 (Personalized Cover Letter Generation)**: (**Complete**)
+  - Tailored cover letter drafting grounded strictly in verified candidate records (name, education, projects, skills, experiences, and active-resume evidence) and published opportunity specifications.
+  - Controls for professional tone (Professional, Enthusiastic, Confident) and length (Concise, Standard, Detailed), plus optional student focus notes.
+  - Provider abstraction: Gemini API integration with honest, transparent deterministic template fallback when unconfigured or unreachable.
+  - Audit trail of verified candidate evidence cited, in-browser editable preview, copy-to-clipboard, and text export.
+  - Validation guardrails preventing empty profile generation or unpublished opportunity access, with zero automatic application submission.
 
 ## 6. AI Match Score Disclaimer
 

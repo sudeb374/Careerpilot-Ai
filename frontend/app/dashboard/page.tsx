@@ -31,6 +31,11 @@ export default function DashboardPage() {
                 Skill-Gap Roadmap
               </Button>
             </Link>
+            <Link href="/cover-letter" className="w-full">
+              <Button className="w-full bg-[#1B5E3B]/15 text-[#1B5E3B] border border-[#1B5E3B]/30 hover:bg-[#1B5E3B]/25 font-semibold">
+                Cover Letter Generator
+              </Button>
+            </Link>
             <Link href="/opportunities" className="w-full">
               <Button className="w-full bg-[#1B5E3B]/10 text-[#1B5E3B] hover:bg-[#1B5E3B]/20">
                 Discover Opportunities

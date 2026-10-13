@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   ArrowLeft, 
   Building2, 
@@ -10,6 +11,7 @@ import {
   Briefcase, 
   ExternalLink,
   AlertCircle,
+  FileEdit,
   Globe,
   Link as LinkIcon
 } from "lucide-react";
@@ -282,8 +284,15 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                   </Button>
                 )}
               </div>
+
+              <Link href={`/cover-letter?opportunity_id=${opportunity.id}`} className="w-full">
+                <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
+                  <FileEdit className="w-4 h-4" />
+                  Draft Tailored Cover Letter
+                </Button>
+              </Link>
               
-              <div className="text-center text-sm text-gray-500 mt-2 bg-gray-50 py-2 px-3 rounded-md border border-gray-100 flex items-center justify-center gap-2">
+              <div className="text-center text-sm text-gray-500 mt-1 bg-gray-50 py-2 px-3 rounded-md border border-gray-100 flex items-center justify-center gap-2">
                 <Calendar className="w-4 h-4" />
                 <span>Deadline: <span className="font-semibold text-gray-700">{formatDeadline(opportunity.deadline)}</span></span>
               </div>
