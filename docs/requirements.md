@@ -62,7 +62,7 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 | 4     | Resume intelligence                                    | Complete    |
 | 5     | AI matching engine                                     | Complete    |
 | 6     | Authorized automated ingestion                         | Complete    |
-| 7     | Career copilot                                         | Planned     |
+| 7     | Career copilot                                         | In Progress (Phase 7.1 Complete) |
 | 8     | Application tracker                                    | Planned     |
 | 9     | Testing and evaluation                                 | Planned     |
 | 10    | Deployment and presentation                            | Planned     |
@@ -83,6 +83,16 @@ Website scraping using BeautifulSoup, Selenium, or Playwright is **intentionally
 3. Avoiding brittle site-specific DOM parsers, unneeded network overhead, and scraping legal/permission uncertainty.
 4. Admin fallback uploads support sources that cannot be integrated via direct API or RSS feeds safely.
 Scraping will only be reconsidered if an authorized provider explicitly allows automated scraping and a clear technical need arises. Phase 6 is not complete until all remaining requirements are implemented or formally approved.
+
+### 5.2 Phase 7: Career Copilot
+
+- **Phase 7.1 (Personalized Skill-Gap Roadmap)**: (**Complete**)
+  - Evidence-based analysis comparing authenticated student's profile skills and active-resume extracted skills against published opportunities.
+  - Transparent, deterministic prioritization distinguishing required skills from desired/preferred skills.
+  - Practical learning sequence stages (Stage 1: Essentials, Stage 2: Core Competencies, Stage 3: Differentiators) without fabricated courses, certificates, or prerequisites.
+  - Clear identification and honest messaging for insufficient profile data or zero matching job postings.
+  - Interactive profile skill saving directly from active-resume evidence or gap recommendations.
+  - Heuristic skill coverage metric with score integrity disclaimers (preventing hiring probability claims).
 
 ## 6. AI Match Score Disclaimer
 

@@ -45,6 +45,9 @@ from app.services.resume_analyzer import (
     get_resume_analysis,
 )
 
+from app.schemas.skill_gap import SkillGapRoadmapResponse
+from app.services.skill_gap import generate_skill_gap_roadmap
+
 router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
 
 
@@ -656,4 +659,20 @@ async def get_opportunity_matches(
         page_size=page_size,
         total=total,
         total_pages=total_pages
+    )
+
+
+@router.get("/skill-gap-roadmap", response_model=SkillGapRoadmapResponse)
+async def get_profile_skill_gap_roadmap(
+    target_role: str | None = Query(None, description="Optional target role to analyze"),
+    current_user=Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get personalized skill-gap roadmap for the current user.
+    """
+    return await generate_skill_gap_roadmap(
+        db=db,
+        profile_id=current_user.id,
+        target_role=target_role,
     )

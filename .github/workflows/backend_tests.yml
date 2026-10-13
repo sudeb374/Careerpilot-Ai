@@ -59,4 +59,4 @@ jobs:
       - name: Run Tests
         working-directory: ./backend
         run: |
-          pytest test_opportunity_matching.py test_opportunity_matching_api.py test_opportunity_lifecycle.py test_saved_opportunities.py test_semantic_matching.py test_jsearch_ingestion.py test_rss_ingestion.py test_phase64_scheduled_refresh.py
+          pytest test_opportunity_matching.py test_opportunity_matching_api.py test_opportunity_lifecycle.py test_saved_opportunities.py test_semantic_matching.py test_jsearch_ingestion.py test_rss_ingestion.py test_phase64_scheduled_refresh.py test_skill_gap_roadmap.py
