@@ -46,6 +46,11 @@ export default function DashboardPage() {
                 Interview Preparation Practice
               </Button>
             </Link>
+            <Link href="/resume-recommendations" className="w-full">
+              <Button className="w-full bg-[#1B5E3B]/15 text-[#1B5E3B] border border-[#1B5E3B]/30 hover:bg-[#1B5E3B]/25 font-semibold">
+                Job-Specific Resume Recommendations
+              </Button>
+            </Link>
             <Link href="/opportunities" className="w-full">
               <Button className="w-full bg-[#1B5E3B]/10 text-[#1B5E3B] hover:bg-[#1B5E3B]/20">
                 Discover Opportunities

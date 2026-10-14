@@ -12,6 +12,7 @@ import {
   ExternalLink,
   AlertCircle,
   BookOpen,
+  FileCheck,
   FileEdit,
   Sparkles,
   Globe,
@@ -305,6 +306,13 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                 <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
                   <BookOpen className="w-4 h-4" />
                   Practice Interview Questions
+                </Button>
+              </Link>
+
+              <Link href={`/resume-recommendations?opportunity_id=${opportunity.id}`} className="w-full">
+                <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
+                  <FileCheck className="w-4 h-4" />
+                  Tailor Resume for this Role
                 </Button>
               </Link>
               

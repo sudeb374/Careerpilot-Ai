@@ -24,6 +24,11 @@ from app.schemas.interview_prep import (
     LocalEvaluationRequest,
     LocalEvaluationResponse,
 )
+from app.schemas.resume_recommendations import (
+    JobResumeAnalysisRequest,
+    JobResumeAnalysisResponse,
+    JobResumeContextResponse,
+)
 from app.schemas.skill_gap import SkillGapRoadmapResponse
 from app.services.application_assistant import (
     generate_application_answer,
@@ -38,6 +43,10 @@ from app.services.interview_prep import (
     evaluate_answer_locally,
     evaluate_answer_with_ai,
     get_interview_prep_config,
+)
+from app.services.resume_recommendations import (
+    analyze_job_resume,
+    get_job_resume_context,
 )
 from app.services.skill_gap import generate_skill_gap_roadmap
 
@@ -278,5 +287,72 @@ async def evaluate_ai_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"AI evaluation encountered an unexpected error: {str(e)}",
+        )
+
+
+@router.get(
+    "/resume-recommendations/context/{opportunity_id}",
+    response_model=JobResumeContextResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Opportunity & Active Resume Context for Recommendations",
+)
+async def get_resume_recommendations_context_endpoint(
+    opportunity_id: UUID,
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Fetch target opportunity details and candidate's active resume status before initiating recommendations.
+    Validates published opportunity status and active resume indicators.
+    """
+    try:
+        return await get_job_resume_context(
+            db=db,
+            profile_id=current_user.id,
+            opportunity_id=opportunity_id,
+        )
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower() or "not published" in err_msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch resume recommendations context: {str(e)}",
+        )
+
+
+@router.post(
+    "/resume-recommendations/analyze",
+    response_model=JobResumeAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate Job-Specific Resume Recommendations",
+)
+async def analyze_job_resume_endpoint(
+    request: JobResumeAnalysisRequest,
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Generate evidence-based, job-specific resume recommendations comparing the authenticated student's
+    active resume against the selected published opportunity.
+    Strictly preserves the existing active resume without modification.
+    """
+    try:
+        return await analyze_job_resume(
+            db=db,
+            profile_id=current_user.id,
+            request=request,
+        )
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower() or "not published" in err_msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Job-specific resume analysis encountered an unexpected error: {str(e)}",
         )
 

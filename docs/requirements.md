@@ -62,7 +62,7 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 | 4     | Resume intelligence                                    | Complete    |
 | 5     | AI matching engine                                     | Complete    |
 | 6     | Authorized automated ingestion                         | Complete    |
-| 7     | Career copilot                                         | In Progress (Phases 7.1, 7.2, 7.3 & 7.4 Complete) |
+| 7     | Career copilot                                         | Complete (Phases 7.1, 7.2, 7.3, 7.4 & 7.5 Complete) |
 | 8     | Application tracker                                    | Planned     |
 | 9     | Testing and evaluation                                 | Planned     |
 | 10    | Deployment and presentation                            | Planned     |
@@ -118,6 +118,17 @@ Scraping will only be reconsidered if an authorized provider explicitly allows a
   - Strict candidate privacy: student answers are practice-only and never persisted in the shared question bank or database tables.
   - Student-facing page `/interview-prep` with responsive stepper, live word/speaking-time counters, collapsible rubric points and guidance frameworks, and seamless opportunity cross-links.
 
+- **Phase 7.5 (Job-Specific Resume Recommendations)**: (**Complete**)
+  - Evidence-grounded analysis comparing authenticated student's active resume against any published opportunity.
+  - Overview showing job metadata, active resume completeness score from Phase 4, and data sufficiency audit.
+  - Categorized strengths (skills, projects, experience, education) displaying clear evidence and relevance explanations.
+  - Requirement gaps distinguishing missing qualifications from unevidenced/incomplete data with actionable candidate advice (preventing unsupported claims of student inadequacy).
+  - Actionable resume improvements: project/experience emphasis guidance, contextual keyword alignment, and grounded bullet rewrites targeting weak or metric-free lines.
+  - Bullet rewrites strictly preserve factual accuracy, never invent technologies or metrics, and insert explicit bracketed metric placeholders (e.g., `[insert metric, e.g. X% improvement]`).
+  - Dual-provider strategy: Gemini API with strict anti-hallucination rules and seamless deterministic fallback when unconfigured, rate-limited, or unavailable.
+  - ATS-oriented structural and readability guidance (headings, single-column parsing, keyword distribution) with prominent disclaimers that CareerPilot AI does not fake proprietary ATS pass scores or guarantee hiring.
+  - Document safety: active resume remains strictly unchanged during analysis; suggestions can be copied without automatic file modification.
+  - Student page at `/resume-recommendations` with opportunity selector, verified active resume preview, interactive tabs, one-click copy actions, and seamless cross-links from dashboard and opportunity details.
 ## 6. AI Match Score Disclaimer
 
 AI-generated match scores (e.g., opportunity-to-profile relevance) are **heuristic recommendations** based on semantic similarity, skill overlap, and profile metadata. They must **not** be represented or interpreted as:
