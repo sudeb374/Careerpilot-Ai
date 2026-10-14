@@ -15,6 +15,15 @@ from app.schemas.cover_letter import (
     CoverLetterGenerateResponse,
     OpportunityContextForLetter,
 )
+from app.schemas.interview_prep import (
+    AIEvaluationRequest,
+    AIEvaluationResponse,
+    InterviewPrepConfigResponse,
+    InterviewSessionRequest,
+    InterviewSessionResponse,
+    LocalEvaluationRequest,
+    LocalEvaluationResponse,
+)
 from app.schemas.skill_gap import SkillGapRoadmapResponse
 from app.services.application_assistant import (
     generate_application_answer,
@@ -23,6 +32,12 @@ from app.services.application_assistant import (
 from app.services.cover_letter import (
     generate_cover_letter,
     get_opportunity_context_for_candidate,
+)
+from app.services.interview_prep import (
+    create_interview_session,
+    evaluate_answer_locally,
+    evaluate_answer_with_ai,
+    get_interview_prep_config,
 )
 from app.services.skill_gap import generate_skill_gap_roadmap
 
@@ -161,3 +176,107 @@ async def generate_application_answer_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Application assistant encountered an unexpected error: {str(e)}",
         )
+
+
+@router.get(
+    "/interview-prep/config",
+    response_model=InterviewPrepConfigResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Interview Prep Options & Published Opportunities",
+)
+async def get_interview_prep_config_endpoint(
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Fetch configuration filters and published opportunities for setting up practice sessions.
+    """
+    return await get_interview_prep_config(db)
+
+
+@router.post(
+    "/interview-prep/session",
+    response_model=InterviewSessionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Create Practice Interview Session",
+)
+async def create_interview_session_endpoint(
+    request: InterviewSessionRequest,
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Select practice questions randomly matching requested role, category, and difficulty filters.
+    Stateless on backend: questions are selected directly from the question bank without calling Gemini.
+    """
+    try:
+        return await create_interview_session(db, request)
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower() or "not published" in err_msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create interview practice session: {str(e)}",
+        )
+
+
+@router.post(
+    "/interview-prep/evaluate-local",
+    response_model=LocalEvaluationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Evaluate Answer with Local Rubric Engine",
+)
+async def evaluate_local_endpoint(
+    request: LocalEvaluationRequest,
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Evaluate student's practice answer using deterministic, local rubric logic.
+    Does NOT call Gemini or external network APIs. Candidate answers are not persisted.
+    """
+    try:
+        return await evaluate_answer_locally(db, request)
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Local evaluation encountered an unexpected error: {str(e)}",
+        )
+
+
+@router.post(
+    "/interview-prep/evaluate-ai",
+    response_model=AIEvaluationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Optional AI Feedback (Uses Gemini Quota)",
+)
+async def evaluate_ai_endpoint(
+    request: AIEvaluationRequest,
+    current_user: Profile = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Explicit action: request AI-assisted interview feedback using Gemini.
+    Falls back gracefully to local rubric evaluation if Gemini is rate-limited, timed out, or unconfigured.
+    """
+    try:
+        return await evaluate_answer_with_ai(db, request)
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI evaluation encountered an unexpected error: {str(e)}",
+        )
+

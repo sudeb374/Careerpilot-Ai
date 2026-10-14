@@ -1,5 +1,6 @@
 # Models package — ORM models
 from app.models.base import Base
+from app.models.interview_question import InterviewQuestion
 from app.models.opportunity import Opportunity, OpportunitySkill
 from app.models.profile import (
     CareerPreference,
@@ -17,6 +18,7 @@ __all__ = [
     "CareerPreference",
     "Education",
     "Experience",
+    "InterviewQuestion",
     "Opportunity",
     "OpportunitySkill",
     "Profile",
@@ -25,3 +27,4 @@ __all__ = [
     "Resume",
     "Skill",
 ]
+

@@ -62,7 +62,7 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 | 4     | Resume intelligence                                    | Complete    |
 | 5     | AI matching engine                                     | Complete    |
 | 6     | Authorized automated ingestion                         | Complete    |
-| 7     | Career copilot                                         | In Progress (Phase 7.1 & 7.2 Complete) |
+| 7     | Career copilot                                         | In Progress (Phases 7.1, 7.2, 7.3 & 7.4 Complete) |
 | 8     | Application tracker                                    | Planned     |
 | 9     | Testing and evaluation                                 | Planned     |
 | 10    | Deployment and presentation                            | Planned     |
@@ -109,6 +109,14 @@ Scraping will only be reconsidered if an authorized provider explicitly allows a
   - Deterministic grounded fallback engine when Gemini is unconfigured, rate-limited, timed out, or unavailable, with transparent provider disclosure.
   - Factual evidence audit trail distinguishing verified profile skills from resume-extracted skills, and explicitly flagging unassumed personal facts (visa/authorization/salary).
   - In-browser editable textarea draft, 1-click clipboard copy, .txt download, and draft review disclaimers.
+
+- **Phase 7.4 (Database-Driven Interview Preparation)**: (**Complete**)
+  - Shared PostgreSQL interview question bank with version-controlled, curated seed dataset (110 questions across 6 role families: General HR/Behavioural, Data Analyst, Data Scientist, AI/ML Engineer, Full-Stack Developer, General Software Engineering).
+  - Zero-API default practice workflow: random sampling with duplicate avoidance, category/difficulty filtering, and graceful fallback to general questions for custom roles.
+  - Deterministic local rubric feedback engine evaluating answers instantly without external network calls (word count, sentence count, completeness level, rubric point matching, STAR structure checks for behavioural questions, and engineering trade-offs).
+  - Explicit, optional "Get AI Feedback (uses Gemini quota)" action with transparent error/fallback handling for quota exhaustion (HTTP 429), timeouts, or missing API keys.
+  - Strict candidate privacy: student answers are practice-only and never persisted in the shared question bank or database tables.
+  - Student-facing page `/interview-prep` with responsive stepper, live word/speaking-time counters, collapsible rubric points and guidance frameworks, and seamless opportunity cross-links.
 
 ## 6. AI Match Score Disclaimer
 

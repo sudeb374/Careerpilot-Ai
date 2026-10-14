@@ -41,6 +41,11 @@ export default function DashboardPage() {
                 Application Question Assistant
               </Button>
             </Link>
+            <Link href="/interview-prep" className="w-full">
+              <Button className="w-full bg-[#1B5E3B]/15 text-[#1B5E3B] border border-[#1B5E3B]/30 hover:bg-[#1B5E3B]/25 font-semibold">
+                Interview Preparation Practice
+              </Button>
+            </Link>
             <Link href="/opportunities" className="w-full">
               <Button className="w-full bg-[#1B5E3B]/10 text-[#1B5E3B] hover:bg-[#1B5E3B]/20">
                 Discover Opportunities

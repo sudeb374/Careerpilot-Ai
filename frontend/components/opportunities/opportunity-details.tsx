@@ -11,6 +11,7 @@ import {
   Briefcase, 
   ExternalLink,
   AlertCircle,
+  BookOpen,
   FileEdit,
   Sparkles,
   Globe,
@@ -297,6 +298,13 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                 <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   Answer Application Questions
+                </Button>
+              </Link>
+
+              <Link href={`/interview-prep?opportunity_id=${opportunity.id}`} className="w-full">
+                <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Practice Interview Questions
                 </Button>
               </Link>
               
