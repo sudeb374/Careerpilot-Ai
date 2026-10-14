@@ -177,7 +177,7 @@ export function InterviewPrep() {
       try {
         const token = await getAccessToken();
         if (!token) {
-          router.push("/auth/login?redirect=/interview-prep");
+          router.push("/login");
           return;
         }
 
@@ -223,7 +223,7 @@ export function InterviewPrep() {
     try {
       const token = await getAccessToken();
       if (!token) {
-        router.push("/auth/login?redirect=/interview-prep");
+        router.push("/login");
         return;
       }
 
