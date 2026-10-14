@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SaveButton } from "./save-button";
+import { TrackApplicationButton } from "@/components/applications/track-application-button";
 import { createClient } from "@/lib/supabase/client";
 import { OpportunityMatchSummary } from "./match-summary";
 
@@ -287,6 +288,8 @@ export function OpportunityDetails({ opportunityId }: OpportunityDetailsProps) {
                   </Button>
                 )}
               </div>
+
+              <TrackApplicationButton opportunityId={opportunity.id} className="w-full" />
 
               <Link href={`/cover-letter?opportunity_id=${opportunity.id}`} className="w-full">
                 <Button variant="outline" className="w-full h-10 border-[#1B5E3B]/30 text-[#1B5E3B] hover:bg-[#E5EDE7] font-semibold flex items-center justify-center gap-2">

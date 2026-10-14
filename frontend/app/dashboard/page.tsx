@@ -26,6 +26,11 @@ export default function DashboardPage() {
                 Your Matches
               </Button>
             </Link>
+            <Link href="/applications" className="w-full">
+              <Button className="w-full bg-[#14261C] text-white hover:bg-[#203a2b] font-semibold flex items-center justify-center gap-2">
+                Application Tracker
+              </Button>
+            </Link>
             <Link href="/roadmap" className="w-full">
               <Button className="w-full bg-[#1B5E3B]/15 text-[#1B5E3B] border border-[#1B5E3B]/30 hover:bg-[#1B5E3B]/25 font-semibold">
                 Skill-Gap Roadmap

@@ -63,9 +63,30 @@ CareerPilot AI is an AI-powered career discovery and internship matching platfor
 | 5     | AI matching engine                                     | Complete    |
 | 6     | Authorized automated ingestion                         | Complete    |
 | 7     | Career copilot                                         | Complete (Phases 7.1, 7.2, 7.3, 7.4 & 7.5 Complete) |
-| 8     | Application tracker                                    | Planned     |
+| 8     | Application tracker                                    | Complete    |
 | 9     | Testing and evaluation                                 | Planned     |
 | 10    | Deployment and presentation                            | Planned     |
+
+### 5.3 Phase 8: Application Tracker
+
+- **Application Lifecycle Tracking**:
+  - Full workflow pipeline supporting statuses: `Saved`, `Applied`, `Assessment`, `Interview`, `Offer`, `Rejected`, and `Withdrawn`.
+  - Clear architectural distinction between saving an opportunity (`SavedOpportunity` / `Saved` status) and marking it as submitted (`Applied` status with explicit `applied_at` timestamp).
+  - Additive database tables: `applications` and `application_status_history` with foreign keys, unique constraint preventing duplicate application records per candidate and opportunity, and cascading cleanup.
+  - Strict candidate data isolation: all application reads, updates, and deletions are scoped strictly to the authenticated student's `profile_id`.
+  - Status transition audit logging: all status changes append to `application_status_history` with optional student notes and timestamps.
+- **Deadlines & Personal Reminders**:
+  - Independent deadline and reminder dates: official application deadlines are tracked separately from personal follow-up reminder datetimes.
+  - In-app reminder workflow: partitions candidate reminders into `due_reminders` (past or due today) and `upcoming_reminders` (scheduled within the next 7 days).
+  - Dismissible and editable reminder dates and reminder notes directly within the tracker.
+- **Candidate Analytics & Honest Metrics**:
+  - Summarizes total tracked, total submitted, active in-progress (assessments/interviews), offers, and status breakdowns.
+  - Response rate and interview conversion rate calculations with explicit small-sample-size disclosures (`< 5 submitted applications is too small for statistical certainty`).
+- **User Interface & Experience**:
+  - Student page at `/applications` with dashboard navigation, status filter tabs, search by company/role/notes, and sorting options.
+  - Interactive Application Management & History modal with status changer, date pickers, personal notes editor, and chronological milestone audit timeline.
+  - "Track Application" flow allows selecting from saved opportunities or published listings, setting initial pipeline status, and custom notes.
+  - Embedded `TrackApplicationButton` on opportunity detail pages and opportunity cards for seamless one-click tracking or status checks.
 
 ### 5.1 Phase 6: Automated Ingestion Plan & Scope Decisions
 

@@ -1,7 +1,7 @@
-# Models package — ORM models
+from app.models.application import Application, ApplicationStatusHistory
 from app.models.base import Base
 from app.models.interview_question import InterviewQuestion
-from app.models.opportunity import Opportunity, OpportunitySkill
+from app.models.opportunity import Opportunity, OpportunitySkill, SavedOpportunity
 from app.models.profile import (
     CareerPreference,
     Education,
@@ -14,6 +14,8 @@ from app.models.profile import (
 )
 
 __all__ = [
+    "Application",
+    "ApplicationStatusHistory",
     "Base",
     "CareerPreference",
     "Education",
@@ -25,6 +27,7 @@ __all__ = [
     "ProfileSkill",
     "Project",
     "Resume",
+    "SavedOpportunity",
     "Skill",
 ]
 

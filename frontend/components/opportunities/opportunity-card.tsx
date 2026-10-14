@@ -3,6 +3,7 @@ import { MapPin, Calendar, Building2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SaveButton } from "./save-button";
+import { TrackApplicationButton } from "@/components/applications/track-application-button";
 
 export type OpportunityCardProps = {
   opportunity: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -158,8 +159,9 @@ export function OpportunityCard({ opportunity, match, onSavedChange }: Opportuni
             )}
           </div>
 
-          <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-3 flex-shrink-0">
+          <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-2.5 flex-shrink-0 items-stretch md:items-center">
             <SaveButton opportunityId={opportunity.id} onSavedChange={onSavedChange} variant="outline" className="w-full md:w-auto" />
+            <TrackApplicationButton opportunityId={opportunity.id} className="w-full md:w-auto" />
             <Link href={`/opportunities/${opportunity.id}`}>
               <Button className="w-full md:w-auto bg-[#1B5E3B] text-white hover:bg-[#2E7D4F]">
                 View Opportunity
