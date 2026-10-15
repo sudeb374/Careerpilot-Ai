@@ -1,0 +1,2406 @@
+{
+  "metadata": {
+    "dataset_version": "1.0.0-draft",
+    "created_at": "2026-10-15T12:00:00Z",
+    "dataset_type": "benchmark_template",
+    "annotation_status": "draft_unverified",
+    "description": "Standardized benchmark template containing 15 diverse student/fresher archetypes spanning Software Engineering, Data Analytics, Data Science, AI/NLP, DevOps, QA, Design, Product, and Embedded Systems, alongside 50 realistic entry-level and internship opportunity specifications. Relevance judgments are documented draft annotations prepared according to the CareerPilot annotation protocol, pending multi-annotator human adjudication.",
+    "provenance": "Candidate archetypes constructed from realistic college graduate skill profiles and curricula. Opportunities formatted after typical verified entries in the CareerPilot ingestion pipeline.",
+    "relevance_scale": {
+      "0": "Not relevant \u2014 critical role discipline mismatch, disjoint skills, incompatible work model or experience requirements",
+      "1": "Partially relevant \u2014 adjacent role title, partial skill match (or transferable foundations), minor negotiable preference gap",
+      "2": "Highly relevant \u2014 target role alignment, strong core skill overlap, compatible location/work model, meets experience targets"
+    },
+    "adjudication_protocol": "Requires 2 independent human annotators. Any disagreement (|a1 - a2| > 0) requires panel adjudication with documented evidence.",
+    "annotators": [
+      "lead-eval-engineer-draft",
+      "unassigned-peer-reviewer"
+    ]
+  },
+  "candidate_profiles": [
+    {
+      "id": "cand_archetype_01",
+      "full_name": "Aarav Sharma (Frontend Web)",
+      "desired_roles": [
+        "Frontend Engineer",
+        "UI Developer",
+        "React Developer"
+      ],
+      "candidate_skills": [
+        "React",
+        "TypeScript",
+        "JavaScript",
+        "HTML",
+        "CSS",
+        "TailwindCSS",
+        "Next.js"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "locations": [
+        "Bangalore",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "SaaS"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "B.Tech in Computer Science and Engineering"
+      ],
+      "notes": "Frontend archetype with strong React/Next.js foundation."
+    },
+    {
+      "id": "cand_archetype_02",
+      "full_name": "Priya Patel (Backend Go)",
+      "desired_roles": [
+        "Backend Developer",
+        "Golang Engineer",
+        "Software Engineer"
+      ],
+      "candidate_skills": [
+        "Go",
+        "Docker",
+        "PostgreSQL",
+        "gRPC",
+        "Redis",
+        "Linux",
+        "Git"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "locations": [
+        "Pune",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Fintech",
+        "Cloud Infrastructure"
+      ],
+      "years_exp": 1.5,
+      "education_text": [
+        "B.Tech in Information Technology"
+      ],
+      "notes": "Backend microservices archetype specializing in Go and distributed systems."
+    },
+    {
+      "id": "cand_archetype_03",
+      "full_name": "Rohan Gupta (Python/Django Backend)",
+      "desired_roles": [
+        "Python Developer",
+        "Backend Engineer",
+        "API Engineer"
+      ],
+      "candidate_skills": [
+        "Python",
+        "Django",
+        "FastAPI",
+        "PostgreSQL",
+        "REST APIs",
+        "Celery"
+      ],
+      "work_model": [
+        "Remote"
+      ],
+      "locations": [
+        "Remote",
+        "Delhi NCR"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "E-commerce"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "B.S. in Computer Science"
+      ],
+      "notes": "Python backend archetype with strong framework proficiency."
+    },
+    {
+      "id": "cand_archetype_04",
+      "full_name": "Ananya Sen (Full Stack TypeScript)",
+      "desired_roles": [
+        "Full Stack Engineer",
+        "Software Engineer",
+        "Web Developer"
+      ],
+      "candidate_skills": [
+        "React",
+        "Node.js",
+        "TypeScript",
+        "Express",
+        "PostgreSQL",
+        "TailwindCSS"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "locations": [
+        "Bangalore",
+        "Hyderabad"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "EdTech"
+      ],
+      "years_exp": 1.2,
+      "education_text": [
+        "B.E. in Computer Science"
+      ],
+      "notes": "Full stack JavaScript/TypeScript generalist."
+    },
+    {
+      "id": "cand_archetype_05",
+      "full_name": "Vikram Nair (Mobile App)",
+      "desired_roles": [
+        "Mobile Developer",
+        "Flutter Developer",
+        "Android Developer"
+      ],
+      "candidate_skills": [
+        "Flutter",
+        "Dart",
+        "Firebase",
+        "Android",
+        "REST APIs",
+        "Mobile UI"
+      ],
+      "work_model": [
+        "Hybrid",
+        "On-site"
+      ],
+      "locations": [
+        "Bangalore",
+        "Chennai"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "Consumer Apps"
+      ],
+      "years_exp": 0.8,
+      "education_text": [
+        "B.Tech in Computer Engineering"
+      ],
+      "notes": "Cross-platform mobile developer."
+    },
+    {
+      "id": "cand_archetype_06",
+      "full_name": "Sneha Roy (Data Analytics Fresher)",
+      "desired_roles": [
+        "Data Analyst",
+        "Business Intelligence Analyst",
+        "Analytics Intern"
+      ],
+      "candidate_skills": [
+        "SQL",
+        "Power BI",
+        "Excel",
+        "Tableau",
+        "Python",
+        "Data Visualization"
+      ],
+      "work_model": [
+        "Hybrid",
+        "Remote"
+      ],
+      "locations": [
+        "Mumbai",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Finance",
+        "Consulting",
+        "Retail"
+      ],
+      "years_exp": 0.5,
+      "education_text": [
+        "B.Sc in Statistics and Mathematics"
+      ],
+      "notes": "Quantitative analytics profile focused on SQL and BI visualization."
+    },
+    {
+      "id": "cand_archetype_07",
+      "full_name": "Kavya Menon (Data Science & ML)",
+      "desired_roles": [
+        "Data Scientist",
+        "Machine Learning Engineer",
+        "AI Intern"
+      ],
+      "candidate_skills": [
+        "Python",
+        "PyTorch",
+        "Scikit-learn",
+        "Pandas",
+        "NumPy",
+        "Machine Learning"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "locations": [
+        "Bangalore",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Healthcare",
+        "Technology"
+      ],
+      "years_exp": 0.8,
+      "education_text": [
+        "M.Tech in Artificial Intelligence"
+      ],
+      "notes": "Data science postgraduate with machine learning and deep learning training."
+    },
+    {
+      "id": "cand_archetype_08",
+      "full_name": "Aditya Verma (AI/NLP Specialist)",
+      "desired_roles": [
+        "NLP Engineer",
+        "AI Engineer",
+        "LLM Engineer"
+      ],
+      "candidate_skills": [
+        "Python",
+        "HuggingFace",
+        "Transformers",
+        "LangChain",
+        "PyTorch",
+        "NLP"
+      ],
+      "work_model": [
+        "Remote"
+      ],
+      "locations": [
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "AI Research"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "M.S. in Computer Science"
+      ],
+      "notes": "Natural language processing and generative AI specialist."
+    },
+    {
+      "id": "cand_archetype_09",
+      "full_name": "Deepak Joshi (Data Engineering)",
+      "desired_roles": [
+        "Data Engineer",
+        "ETL Developer",
+        "Big Data Engineer"
+      ],
+      "candidate_skills": [
+        "Python",
+        "SQL",
+        "Apache Spark",
+        "Airflow",
+        "PostgreSQL",
+        "Kafka"
+      ],
+      "work_model": [
+        "Hybrid"
+      ],
+      "locations": [
+        "Hyderabad",
+        "Bangalore"
+      ],
+      "preferred_domains": [
+        "Fintech",
+        "Telecom"
+      ],
+      "years_exp": 1.2,
+      "education_text": [
+        "B.Tech in Computer Science"
+      ],
+      "notes": "Data pipeline and ETL pipeline developer."
+    },
+    {
+      "id": "cand_archetype_10",
+      "full_name": "Siddharth Rao (DevOps & Cloud)",
+      "desired_roles": [
+        "DevOps Engineer",
+        "Cloud Engineer",
+        "Site Reliability Engineer"
+      ],
+      "candidate_skills": [
+        "AWS",
+        "Docker",
+        "Kubernetes",
+        "Linux",
+        "Terraform",
+        "CI/CD",
+        "Bash"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "locations": [
+        "Pune",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Cloud Infrastructure",
+        "Technology"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "B.Tech in Information Technology"
+      ],
+      "notes": "DevOps infrastructure automation specialist."
+    },
+    {
+      "id": "cand_archetype_11",
+      "full_name": "Neha Kulkarni (Cybersecurity Intern)",
+      "desired_roles": [
+        "Security Analyst",
+        "Information Security Intern",
+        "SOC Analyst"
+      ],
+      "candidate_skills": [
+        "Networking",
+        "Linux",
+        "Wireshark",
+        "SIEM",
+        "Python",
+        "Vulnerability Assessment"
+      ],
+      "work_model": [
+        "On-site",
+        "Hybrid"
+      ],
+      "locations": [
+        "Mumbai",
+        "Pune"
+      ],
+      "preferred_domains": [
+        "Banking",
+        "Defense",
+        "Technology"
+      ],
+      "years_exp": 0.5,
+      "education_text": [
+        "B.Tech in Cybersecurity and Networking"
+      ],
+      "notes": "Junior cybersecurity and SOC monitoring profile."
+    },
+    {
+      "id": "cand_archetype_12",
+      "full_name": "Arjun Das (QA & Test Automation)",
+      "desired_roles": [
+        "QA Automation Engineer",
+        "Software Test Engineer",
+        "SDET"
+      ],
+      "candidate_skills": [
+        "Selenium",
+        "Python",
+        "Java",
+        "Cypress",
+        "Postman",
+        "TestNG",
+        "Git"
+      ],
+      "work_model": [
+        "Hybrid",
+        "Remote"
+      ],
+      "locations": [
+        "Kolkata",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "Healthcare"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "B.C.A. in Computer Applications"
+      ],
+      "notes": "Quality assurance and automated testing profile."
+    },
+    {
+      "id": "cand_archetype_13",
+      "full_name": "Tanvi Kapoor (UI/UX Design)",
+      "desired_roles": [
+        "UI/UX Designer",
+        "Product Designer",
+        "User Researcher"
+      ],
+      "candidate_skills": [
+        "Figma",
+        "User Research",
+        "Wireframing",
+        "Prototyping",
+        "Design Systems",
+        "Usability Testing"
+      ],
+      "work_model": [
+        "Remote",
+        "Hybrid"
+      ],
+      "locations": [
+        "Delhi NCR",
+        "Remote"
+      ],
+      "preferred_domains": [
+        "Technology",
+        "E-commerce",
+        "Media"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "B.Des in Interaction Design"
+      ],
+      "notes": "Product designer specializing in Figma and user-centric workflows."
+    },
+    {
+      "id": "cand_archetype_14",
+      "full_name": "Karthik Reddy (Product Management)",
+      "desired_roles": [
+        "Associate Product Manager",
+        "Product Analyst",
+        "Product Operations"
+      ],
+      "candidate_skills": [
+        "Product Strategy",
+        "Agile",
+        "User Research",
+        "SQL",
+        "Jira",
+        "A/B Testing"
+      ],
+      "work_model": [
+        "Hybrid",
+        "On-site"
+      ],
+      "locations": [
+        "Bangalore"
+      ],
+      "preferred_domains": [
+        "Fintech",
+        "Consumer Internet"
+      ],
+      "years_exp": 1.5,
+      "education_text": [
+        "B.Tech in Mechanical Engineering",
+        "MBA in Technology Management"
+      ],
+      "notes": "Associate product manager with technical fluency and analytics."
+    },
+    {
+      "id": "cand_archetype_15",
+      "full_name": "Varun Mehta (Embedded & Systems)",
+      "desired_roles": [
+        "Embedded Software Engineer",
+        "Firmware Engineer",
+        "Systems Programmer"
+      ],
+      "candidate_skills": [
+        "C",
+        "C++",
+        "RTOS",
+        "Embedded Linux",
+        "Microcontrollers",
+        "Git"
+      ],
+      "work_model": [
+        "On-site"
+      ],
+      "locations": [
+        "Bangalore",
+        "Hyderabad"
+      ],
+      "preferred_domains": [
+        "Automotive",
+        "Semiconductors",
+        "IoT"
+      ],
+      "years_exp": 1.0,
+      "education_text": [
+        "B.Tech in Electronics and Communication Engineering"
+      ],
+      "notes": "Low-level systems and embedded firmware specialist."
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "opp_eval_01",
+      "title": "Junior React Developer",
+      "company_name": "PixelCraft Technologies",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Bangalore",
+        "Remote"
+      ],
+      "required_skills": [
+        "React",
+        "TypeScript",
+        "TailwindCSS"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Tech or equivalent in CS/IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_02",
+      "title": "Frontend Engineer (Next.js)",
+      "company_name": "SaaSForge Systems",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "HTML",
+        "CSS"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Bachelor's in Computer Science",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_03",
+      "title": "Full Stack Engineer (Node & React)",
+      "company_name": "HyperScale Apps",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Node.js",
+        "React",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.E. / B.Tech in CS or IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_04",
+      "title": "Web UI Developer Intern",
+      "company_name": "DesignCode Studio",
+      "domain": "E-commerce",
+      "opportunity_type": "Internship",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "React"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Undergraduate student in engineering or design",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_05",
+      "title": "Flutter Mobile Developer",
+      "company_name": "AppVentures Media",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "Flutter",
+        "Dart",
+        "Firebase",
+        "REST APIs"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "Bachelor's degree in engineering",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_06",
+      "title": "Android Software Engineer",
+      "company_name": "PocketPay Global",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Chennai"
+      ],
+      "required_skills": [
+        "Android",
+        "Kotlin",
+        "Java",
+        "REST APIs"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Computer Science",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_07",
+      "title": "Full Stack Web Developer",
+      "company_name": "EduLearn Interactive",
+      "domain": "EdTech",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "React",
+        "Node.js",
+        "Express",
+        "TailwindCSS"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Computer Science degree or related",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_08",
+      "title": "Junior Web Developer",
+      "company_name": "QuickCart Logistics",
+      "domain": "E-commerce",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "JavaScript",
+        "HTML",
+        "CSS",
+        "React"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Tech / B.C.A.",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_09",
+      "title": "Software Development Engineer - Frontend",
+      "company_name": "NovaCloud Platforms",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "React",
+        "TypeScript",
+        "Next.js",
+        "TailwindCSS"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in CS/IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_10",
+      "title": "Mobile App Engineering Intern",
+      "company_name": "FitPulse Health",
+      "domain": "Healthcare",
+      "opportunity_type": "Internship",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "Flutter",
+        "Dart",
+        "Mobile UI"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Enrolled in Bachelor's degree program",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_11",
+      "title": "Golang Backend Developer",
+      "company_name": "KubeStream Systems",
+      "domain": "Cloud Infrastructure",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Pune"
+      ],
+      "required_skills": [
+        "Go",
+        "Docker",
+        "gRPC",
+        "PostgreSQL"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Computer Science or IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_12",
+      "title": "Backend Software Engineer (Python)",
+      "company_name": "FinEdge Analytics",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Pune"
+      ],
+      "required_skills": [
+        "Python",
+        "FastAPI",
+        "PostgreSQL",
+        "Docker"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Degree in Computer Science or Engineering",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_13",
+      "title": "Python Django Developer",
+      "company_name": "ShopTrend Commerce",
+      "domain": "E-commerce",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Delhi NCR"
+      ],
+      "required_skills": [
+        "Python",
+        "Django",
+        "PostgreSQL",
+        "REST APIs"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.S. or B.Tech in CS/IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_14",
+      "title": "Distributed Systems Engineer (Go)",
+      "company_name": "BlockVault Networks",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Go",
+        "Redis",
+        "Docker",
+        "PostgreSQL"
+      ],
+      "required_experience_min": 1.5,
+      "education_requirements": "B.Tech / M.Tech in CS",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_15",
+      "title": "API Backend Developer Intern",
+      "company_name": "DataBridge Tech",
+      "domain": "Technology",
+      "opportunity_type": "Internship",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Python",
+        "FastAPI",
+        "REST APIs"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Students in Final Year of CS/IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_16",
+      "title": "Backend Microservices Developer",
+      "company_name": "AeroCloud Mobility",
+      "domain": "Cloud Infrastructure",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Pune"
+      ],
+      "required_skills": [
+        "Go",
+        "Docker",
+        "Linux",
+        "gRPC"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Computer Engineering",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_17",
+      "title": "Python Web Services Engineer",
+      "company_name": "OmniChannel Retail",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Python",
+        "Django",
+        "Celery",
+        "PostgreSQL"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Bachelor's degree in technical field",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_18",
+      "title": "Junior Backend Engineer",
+      "company_name": "PayFlow Solutions",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Pune"
+      ],
+      "required_skills": [
+        "Go",
+        "PostgreSQL",
+        "Git"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Tech in IT / Computer Science",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_19",
+      "title": "Core Python Developer",
+      "company_name": "LogiRoute Systems",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Delhi NCR"
+      ],
+      "required_skills": [
+        "Python",
+        "FastAPI",
+        "REST APIs",
+        "PostgreSQL"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech / B.E.",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_20",
+      "title": "Cloud Backend Engineer",
+      "company_name": "InfraStack Labs",
+      "domain": "Cloud Infrastructure",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Go",
+        "Docker",
+        "Linux",
+        "Redis"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Computer Science",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_21",
+      "title": "Junior Data Analyst",
+      "company_name": "CapitalView Partners",
+      "domain": "Finance",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Mumbai"
+      ],
+      "required_skills": [
+        "SQL",
+        "Power BI",
+        "Excel",
+        "Data Visualization"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "Bachelor's in Statistics, Maths, or Economics",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_22",
+      "title": "Business Intelligence Analyst",
+      "company_name": "RetailPulse Insights",
+      "domain": "Retail",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Mumbai"
+      ],
+      "required_skills": [
+        "SQL",
+        "Tableau",
+        "Power BI",
+        "Excel"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Sc or B.Tech",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_23",
+      "title": "Data Science Associate",
+      "company_name": "BioHealth AI Labs",
+      "domain": "Healthcare",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Bangalore"
+      ],
+      "required_skills": [
+        "Python",
+        "PyTorch",
+        "Scikit-learn",
+        "Pandas",
+        "Machine Learning"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "M.Tech / M.S. in Data Science, AI or related",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_24",
+      "title": "Machine Learning Engineer",
+      "company_name": "CognitiveVision Tech",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "Python",
+        "PyTorch",
+        "Machine Learning",
+        "NumPy"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Master's or Bachelor's in CS / AI",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_25",
+      "title": "NLP & AI Engineer",
+      "company_name": "LinguisticAI Global",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Python",
+        "HuggingFace",
+        "Transformers",
+        "LangChain",
+        "NLP"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "M.S. in Computer Science or computational linguistics",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_26",
+      "title": "Associate Data Engineer",
+      "company_name": "FinStream Systems",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Hyderabad"
+      ],
+      "required_skills": [
+        "Python",
+        "SQL",
+        "Apache Spark",
+        "Airflow",
+        "PostgreSQL"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Computer Science or IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_27",
+      "title": "Analytics Consulting Intern",
+      "company_name": "StratMetrics Advisory",
+      "domain": "Consulting",
+      "opportunity_type": "Internship",
+      "work_model": "Hybrid",
+      "locations": [
+        "Mumbai"
+      ],
+      "required_skills": [
+        "Excel",
+        "SQL",
+        "Power BI"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Bachelor's degree in quantitative field",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_28",
+      "title": "Applied AI Research Intern",
+      "company_name": "DeepMinded Labs",
+      "domain": "AI Research",
+      "opportunity_type": "Internship",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Python",
+        "PyTorch",
+        "Transformers",
+        "HuggingFace"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Graduate student in AI / CS",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_29",
+      "title": "Data Pipeline Engineer",
+      "company_name": "TeleData Networks",
+      "domain": "Telecom",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "SQL",
+        "Python",
+        "Airflow",
+        "Kafka"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Computer Science",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_30",
+      "title": "Healthcare Data Scientist",
+      "company_name": "CareSync Analytics",
+      "domain": "Healthcare",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Python",
+        "Pandas",
+        "Scikit-learn",
+        "Machine Learning"
+      ],
+      "required_experience_min": 0.8,
+      "education_requirements": "Degree in Data Science / Informatics",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_31",
+      "title": "Junior DevOps Engineer",
+      "company_name": "CloudOps Automation",
+      "domain": "Cloud Infrastructure",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Pune"
+      ],
+      "required_skills": [
+        "AWS",
+        "Docker",
+        "Kubernetes",
+        "Linux",
+        "CI/CD"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in CS/IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_32",
+      "title": "Site Reliability Engineering Intern",
+      "company_name": "ServerScale Networks",
+      "domain": "Technology",
+      "opportunity_type": "Internship",
+      "work_model": "Hybrid",
+      "locations": [
+        "Pune"
+      ],
+      "required_skills": [
+        "Linux",
+        "Docker",
+        "Bash",
+        "CI/CD"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Final year technical student",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_33",
+      "title": "Cybersecurity Analyst",
+      "company_name": "SecureBank India",
+      "domain": "Banking",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Mumbai"
+      ],
+      "required_skills": [
+        "Networking",
+        "Linux",
+        "Wireshark",
+        "SIEM"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Tech in Cybersecurity or CS",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_34",
+      "title": "SOC Security Intern",
+      "company_name": "ShieldDefense Technologies",
+      "domain": "Defense",
+      "opportunity_type": "Internship",
+      "work_model": "On-site",
+      "locations": [
+        "Pune"
+      ],
+      "required_skills": [
+        "Linux",
+        "Networking",
+        "Wireshark"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Degree in computer networks or cybersecurity",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_35",
+      "title": "QA Automation Engineer",
+      "company_name": "TestWave Software",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Kolkata"
+      ],
+      "required_skills": [
+        "Selenium",
+        "Python",
+        "Cypress",
+        "Postman"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech / B.C.A.",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_36",
+      "title": "Software Test Engineer",
+      "company_name": "CareLogic Medical",
+      "domain": "Healthcare",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Kolkata"
+      ],
+      "required_skills": [
+        "Selenium",
+        "Java",
+        "TestNG",
+        "Postman"
+      ],
+      "required_experience_min": 0.8,
+      "education_requirements": "Degree in Computer Applications or Engineering",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_37",
+      "title": "Cloud Infrastructure Associate",
+      "company_name": "TerraCloud Ops",
+      "domain": "Cloud Infrastructure",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Terraform",
+        "AWS",
+        "Docker",
+        "Linux"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in IT / CS",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_38",
+      "title": "Information Security Associate",
+      "company_name": "CyberVanguard India",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Mumbai"
+      ],
+      "required_skills": [
+        "SIEM",
+        "Python",
+        "Vulnerability Assessment",
+        "Linux"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Tech in Computer Engineering",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_39",
+      "title": "QA Automation Tester Intern",
+      "company_name": "QualityFirst Labs",
+      "domain": "Technology",
+      "opportunity_type": "Internship",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "Python",
+        "Selenium",
+        "Postman"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Student in CS/IT",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_40",
+      "title": "Cloud Security Operations Specialist",
+      "company_name": "FinShield Infrastructure",
+      "domain": "Banking",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Mumbai"
+      ],
+      "required_skills": [
+        "Linux",
+        "AWS",
+        "Networking",
+        "SIEM"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Cybersecurity / CS",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_41",
+      "title": "UI/UX Product Designer",
+      "company_name": "CreatoDesign Hub",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote",
+        "Delhi NCR"
+      ],
+      "required_skills": [
+        "Figma",
+        "User Research",
+        "Wireframing",
+        "Prototyping"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Des in Interaction Design or equivalent portfolio",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_42",
+      "title": "Junior Interaction Designer",
+      "company_name": "BazaarDirect E-Commerce",
+      "domain": "E-commerce",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Delhi NCR"
+      ],
+      "required_skills": [
+        "Figma",
+        "Design Systems",
+        "Usability Testing",
+        "Wireframing"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "Degree in Design, HCI or Arts",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_43",
+      "title": "Associate Product Manager",
+      "company_name": "FinNext Payments",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "Product Strategy",
+        "Agile",
+        "User Research",
+        "SQL"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Bachelor's / Master's degree with tech literacy",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_44",
+      "title": "Product Analyst",
+      "company_name": "StreamZ Media",
+      "domain": "Consumer Internet",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "SQL",
+        "A/B Testing",
+        "Agile",
+        "User Research"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Engineering, Economics or Business background",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_45",
+      "title": "Product Operations Intern",
+      "company_name": "UrbanDrop Logistics",
+      "domain": "Consumer Internet",
+      "opportunity_type": "Internship",
+      "work_model": "On-site",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "Agile",
+        "Jira",
+        "User Research"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Pursuing MBA or engineering degree",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_46",
+      "title": "Junior UX Researcher",
+      "company_name": "HumanCentric Labs",
+      "domain": "Media",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": [
+        "Remote"
+      ],
+      "required_skills": [
+        "User Research",
+        "Usability Testing",
+        "Figma"
+      ],
+      "required_experience_min": 0.5,
+      "education_requirements": "B.Des, Psychology, or HCI",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_47",
+      "title": "Embedded Software Engineer",
+      "company_name": "AutoDrive Embedded",
+      "domain": "Automotive",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "C",
+        "C++",
+        "RTOS",
+        "Microcontrollers"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in ECE / EEE / CS",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_48",
+      "title": "Firmware Development Engineer",
+      "company_name": "SemiconChips India",
+      "domain": "Semiconductors",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Hyderabad"
+      ],
+      "required_skills": [
+        "C",
+        "Embedded Linux",
+        "Git",
+        "RTOS"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "B.Tech in Electronics / Computer Engineering",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_49",
+      "title": "IoT Systems Engineer Intern",
+      "company_name": "SmartGrid IoT",
+      "domain": "IoT",
+      "opportunity_type": "Internship",
+      "work_model": "On-site",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "C",
+        "Microcontrollers",
+        "RTOS"
+      ],
+      "required_experience_min": 0.0,
+      "education_requirements": "Final year student in ECE / EE",
+      "status": "Published"
+    },
+    {
+      "id": "opp_eval_50",
+      "title": "Embedded Linux Systems Programmer",
+      "company_name": "RoboMotive Dynamics",
+      "domain": "Automotive",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": [
+        "Bangalore"
+      ],
+      "required_skills": [
+        "C++",
+        "Embedded Linux",
+        "C",
+        "Git"
+      ],
+      "required_experience_min": 1.0,
+      "education_requirements": "Degree in Computer Engineering or ECE",
+      "status": "Published"
+    }
+  ],
+  "judgments": [
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Junior React), full skill overlap (React, TypeScript, TailwindCSS), remote location."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_02",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Frontend Next.js), core skills (React, Next.js, TS), Bangalore location aligns."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_09",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (SDE Frontend), full tech stack overlap, remote work model."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_03",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: full stack role, candidate has React and TS, lacks Node backend."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_04",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Web UI developer intern with HTML/CSS/React, junior level."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_11",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Go cloud backend requires distributed systems skills outside frontend focus."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_21",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Data Analyst in Finance requiring Power BI and SQL."
+    },
+    {
+      "profile_id": "cand_archetype_01",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Embedded software engineering requires C/RTOS/hardware."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_11",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Golang Backend), tech stack match (Go, Docker, gRPC, PostgreSQL), Pune/Remote."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_14",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Distributed Systems Go), domain match (Fintech), skills align (Go, Redis, Docker)."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_16",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Backend Microservices), tech stack (Go, Docker, Linux, gRPC), Pune hybrid."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_18",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Junior Backend Go), skills (Go, PostgreSQL, Git), Pune."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_20",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Cloud Backend Go), skills (Go, Docker, Linux, Redis)."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_12",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: backend engineer in Fintech, requires Python instead of Go, shared Docker/PostgreSQL."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_31",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: DevOps role shares Docker/Linux/Cloud infrastructure skills."
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend React role is completely disjoint from Go backend."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_13",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Python Django Developer), skills (Python, Django, PostgreSQL, REST), Delhi NCR/Remote."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_17",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Python Web Services Engineer), skills (Python, Django, Celery, PostgreSQL), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_19",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Core Python Developer), skills (Python, FastAPI, REST, PostgreSQL), Delhi NCR."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_12",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Backend SE Python, FastAPI, Fintech domain."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_15",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: API Backend Developer Intern with Python and FastAPI."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend React development."
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Embedded C/C++ engineering."
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "opportunity_id": "opp_eval_03",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Full Stack Node & React), skills (Node.js, React, TS, PostgreSQL), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "opportunity_id": "opp_eval_07",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Full Stack Web Developer), skills (React, Node.js, Express, Tailwind), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Frontend React role utilizes candidate frontend skillset."
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "opportunity_id": "opp_eval_02",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Frontend Next.js role utilizes React and TypeScript."
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "opportunity_id": "opp_eval_11",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Go backend microservices."
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "opportunity_id": "opp_eval_33",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Cybersecurity Analyst."
+    },
+    {
+      "profile_id": "cand_archetype_05",
+      "opportunity_id": "opp_eval_05",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Flutter Mobile Developer), skills (Flutter, Dart, Firebase, REST), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_05",
+      "opportunity_id": "opp_eval_10",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Mobile App Engineering Intern), skills (Flutter, Dart, Mobile UI), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_05",
+      "opportunity_id": "opp_eval_06",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Native Android role, candidate has Android foundation."
+    },
+    {
+      "profile_id": "cand_archetype_05",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend web React development."
+    },
+    {
+      "profile_id": "cand_archetype_05",
+      "opportunity_id": "opp_eval_11",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Cloud backend Go development."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_21",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Junior Data Analyst), skills (SQL, Power BI, Excel, Data Viz), Mumbai."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_22",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (BI Analyst), skills (SQL, Tableau, Power BI), Retail, Remote/Mumbai."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_27",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Analytics Consulting Intern), skills (Excel, SQL, Power BI), Mumbai."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_44",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Product Analyst requires SQL and analytics."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_23",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Data science role requires advanced ML, candidate has SQL/Python base."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend web development."
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Embedded software engineering."
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "opportunity_id": "opp_eval_23",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Data Science Associate), skills (Python, PyTorch, Scikit-learn, ML), Healthcare, Remote."
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "opportunity_id": "opp_eval_24",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (ML Engineer), skills (Python, PyTorch, Machine Learning), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "opportunity_id": "opp_eval_30",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Healthcare Data Scientist), skills (Python, Pandas, Scikit-learn, ML), Healthcare domain."
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "opportunity_id": "opp_eval_28",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Applied AI Research Intern requires Transformers, candidate has strong PyTorch base."
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "opportunity_id": "opp_eval_21",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Data Analyst role utilizes analytical foundation."
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "opportunity_id": "opp_eval_05",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Mobile app engineering requires Flutter/Dart."
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "opportunity_id": "opp_eval_25",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (NLP & AI Engineer), skills (Python, HuggingFace, Transformers, LangChain, NLP), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "opportunity_id": "opp_eval_28",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Applied AI Research Intern), skills (Python, PyTorch, Transformers, HuggingFace), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "opportunity_id": "opp_eval_24",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Machine Learning Engineer utilizes PyTorch and Python."
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "opportunity_id": "opp_eval_23",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Data Science Associate shares ML and Python foundations."
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend React development."
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Low-level embedded systems programming."
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "opportunity_id": "opp_eval_26",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Associate Data Engineer), skills (Python, SQL, Spark, Airflow, PostgreSQL), Hyderabad."
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "opportunity_id": "opp_eval_29",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Data Pipeline Engineer), skills (SQL, Python, Airflow, Kafka), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "opportunity_id": "opp_eval_21",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Data Analyst shares SQL and data processing background."
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "opportunity_id": "opp_eval_12",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Python backend engineer shares PostgreSQL and Python skills."
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "opportunity_id": "opp_eval_41",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: UI/UX product design."
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "opportunity_id": "opp_eval_05",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Mobile app Flutter engineering."
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "opportunity_id": "opp_eval_31",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Junior DevOps Engineer), skills (AWS, Docker, Kubernetes, Linux, CI/CD), Pune/Remote."
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "opportunity_id": "opp_eval_32",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (SRE Intern), skills (Linux, Docker, Bash, CI/CD), Pune."
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "opportunity_id": "opp_eval_37",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Cloud Infrastructure Associate), skills (Terraform, AWS, Docker, Linux), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "opportunity_id": "opp_eval_20",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Cloud backend role utilizes Docker and Linux infrastructure."
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "opportunity_id": "opp_eval_33",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Cybersecurity analyst shares Linux and networking background."
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend web React development."
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "opportunity_id": "opp_eval_33",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Cybersecurity Analyst), skills (Networking, Linux, Wireshark, SIEM), Mumbai."
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "opportunity_id": "opp_eval_34",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (SOC Security Intern), skills (Linux, Networking, Wireshark), Pune."
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "opportunity_id": "opp_eval_38",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (InfoSec Associate), skills (SIEM, Python, Vulnerability Assessment, Linux), Mumbai."
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "opportunity_id": "opp_eval_40",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Cloud Security Specialist shares Linux, Networking, and SIEM skills."
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Frontend React development."
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "opportunity_id": "opp_eval_43",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Associate product management."
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "opportunity_id": "opp_eval_35",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (QA Automation Engineer), skills (Selenium, Python, Cypress, Postman), Kolkata/Remote."
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "opportunity_id": "opp_eval_36",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Software Test Engineer), skills (Selenium, Java, TestNG, Postman), Kolkata."
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "opportunity_id": "opp_eval_39",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (QA Automation Tester Intern), skills (Python, Selenium, Postman), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "opportunity_id": "opp_eval_03",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Full stack web development shares testing and Postman/REST workflows."
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "opportunity_id": "opp_eval_21",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Financial Data Analytics."
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Embedded hardware engineering."
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "opportunity_id": "opp_eval_41",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (UI/UX Product Designer), skills (Figma, User Research, Wireframing, Prototyping), Remote/Delhi."
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "opportunity_id": "opp_eval_42",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Junior Interaction Designer), skills (Figma, Design Systems, Usability Testing), Delhi."
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "opportunity_id": "opp_eval_46",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Junior UX Researcher), skills (User Research, Usability Testing, Figma), Remote."
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "opportunity_id": "opp_eval_04",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Web UI developer intern shares UI/UX sensibilities and prototyping."
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "opportunity_id": "opp_eval_43",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Associate Product Manager shares user research and wireframing."
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "opportunity_id": "opp_eval_11",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Golang backend microservices."
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "opportunity_id": "opp_eval_43",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Associate Product Manager), skills (Product Strategy, Agile, User Research, SQL), Fintech, Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "opportunity_id": "opp_eval_44",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Product Analyst), skills (SQL, A/B Testing, Agile, User Research), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "opportunity_id": "opp_eval_45",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Product Operations Intern), skills (Agile, Jira, User Research), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "opportunity_id": "opp_eval_41",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: UI/UX designer shares product workflows and user research."
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "opportunity_id": "opp_eval_21",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Partially relevant: Data Analyst utilizes SQL and business analytics background."
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Low-level C/C++ embedded engineering."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_47",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Embedded Software Engineer), skills (C, C++, RTOS, Microcontrollers), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_48",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Firmware Development), skills (C, Embedded Linux, Git, RTOS), Hyderabad."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_49",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (IoT Systems Intern), skills (C, Microcontrollers, RTOS), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_50",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Direct role match (Embedded Linux Systems Programmer), skills (C++, Embedded Linux, C, Git), Bangalore."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_11",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: Go cloud backend development."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: React frontend development."
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "opportunity_id": "opp_eval_41",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": null,
+      "adjudicated": false,
+      "evidence": "Irrelevant: UI/UX product design."
+    }
+  ]
+}

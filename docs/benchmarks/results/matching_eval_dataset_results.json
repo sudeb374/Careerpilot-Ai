@@ -1,0 +1,1378 @@
+{
+  "metadata": {
+    "evaluation_timestamp": "2026-10-15T07:51:24.648932+00:00",
+    "scoring_engine": "CareerPilot Heuristic Matching Engine v1.0",
+    "score_nature_disclaimer": "Scores are heuristic recommendations based on profile metadata, skill overlap, and domain alignment. They are not hiring probabilities, qualification guarantees, or employer endorsements.",
+    "is_synthetic_fixture": false,
+    "is_unverified_benchmark": true,
+    "metric_definitions": {
+      "Precision@K": "Fraction of top-K recommendations with relevance >= 1. K in [3, 5, 10].",
+      "Recall@K": "Fraction of total judged relevant items in pool retrieved in top-K. K in [5, 10].",
+      "NDCG@K": "Normalized Discounted Cumulative Gain with exponential gain (2^rel - 1). K in [5, 10].",
+      "MRR_highly_relevant": "Mean Reciprocal Rank of the first item with relevance == 2 (primary metric).",
+      "MRR_any_relevant": "Mean Reciprocal Rank of the first item with relevance >= 1 (secondary metric)."
+    }
+  },
+  "dataset_summary": {
+    "dataset_version": "1.0.0-draft",
+    "dataset_type": "benchmark_template",
+    "annotation_status": "draft_unverified",
+    "total_candidate_profiles": 15,
+    "total_opportunities": 50,
+    "total_judgments": 96,
+    "evaluated_profiles_count": 15,
+    "excluded_profiles_count": 0
+  },
+  "macro_metrics": {
+    "num_evaluated_profiles": 15,
+    "precision@3": 1.0,
+    "precision@5": 0.84,
+    "precision@10": 0.46,
+    "recall@5": 0.9276,
+    "recall@5_profile_count": 15,
+    "recall@10": 1.0,
+    "recall@10_profile_count": 15,
+    "ndcg@5": 0.9736,
+    "ndcg@10": 0.9925,
+    "mrr_highly_relevant": 1.0,
+    "mrr_any_relevant": 1.0
+  },
+  "per_profile_results": [
+    {
+      "profile_id": "cand_archetype_01",
+      "full_name": "Aarav Sharma (Frontend Web)",
+      "desired_roles": [
+        "Frontend Engineer",
+        "UI Developer",
+        "React Developer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 1.0,
+        "precision@10": 0.5,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9808,
+        "ndcg@10": 0.9808,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 8,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_02",
+          "title": "Frontend Engineer (Next.js)",
+          "company_name": "SaaSForge Systems",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_04",
+          "title": "Web UI Developer Intern",
+          "company_name": "DesignCode Studio",
+          "domain": "E-commerce",
+          "match_score": 82.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_09",
+          "title": "Software Development Engineer - Frontend",
+          "company_name": "NovaCloud Platforms",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_03",
+          "title": "Full Stack Engineer (Node & React)",
+          "company_name": "HyperScale Apps",
+          "domain": "Technology",
+          "match_score": 52.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_11",
+          "title": "Golang Backend Developer",
+          "company_name": "KubeStream Systems",
+          "domain": "Cloud Infrastructure",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_21",
+          "title": "Junior Data Analyst",
+          "company_name": "CapitalView Partners",
+          "domain": "Finance",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_02",
+      "full_name": "Priya Patel (Backend Go)",
+      "desired_roles": [
+        "Backend Developer",
+        "Golang Engineer",
+        "Software Engineer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 1.0,
+        "precision@10": 0.7,
+        "recall@5": 0.7143,
+        "recall@10": 1.0,
+        "ndcg@5": 0.8573,
+        "ndcg@10": 0.9424,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 8,
+        "total_relevant": 7,
+        "total_highly_relevant": 5
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_11",
+          "title": "Golang Backend Developer",
+          "company_name": "KubeStream Systems",
+          "domain": "Cloud Infrastructure",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_12",
+          "title": "Backend Software Engineer (Python)",
+          "company_name": "FinEdge Analytics",
+          "domain": "Fintech",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_14",
+          "title": "Distributed Systems Engineer (Go)",
+          "company_name": "BlockVault Networks",
+          "domain": "Fintech",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_16",
+          "title": "Backend Microservices Developer",
+          "company_name": "AeroCloud Mobility",
+          "domain": "Cloud Infrastructure",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_20",
+          "title": "Cloud Backend Engineer",
+          "company_name": "InfraStack Labs",
+          "domain": "Cloud Infrastructure",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_18",
+          "title": "Junior Backend Engineer",
+          "company_name": "PayFlow Solutions",
+          "domain": "Fintech",
+          "match_score": 65.0,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_31",
+          "title": "Junior DevOps Engineer",
+          "company_name": "CloudOps Automation",
+          "domain": "Cloud Infrastructure",
+          "match_score": 48.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_03",
+      "full_name": "Rohan Gupta (Python/Django Backend)",
+      "desired_roles": [
+        "Python Developer",
+        "Backend Engineer",
+        "API Engineer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 1.0,
+        "precision@10": 0.5,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9808,
+        "ndcg@10": 0.9808,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 7,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_19",
+          "title": "Core Python Developer",
+          "company_name": "LogiRoute Systems",
+          "domain": "Technology",
+          "match_score": 85.0,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_13",
+          "title": "Python Django Developer",
+          "company_name": "ShopTrend Commerce",
+          "domain": "E-commerce",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_15",
+          "title": "API Backend Developer Intern",
+          "company_name": "DataBridge Tech",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_17",
+          "title": "Python Web Services Engineer",
+          "company_name": "OmniChannel Retail",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_12",
+          "title": "Backend Software Engineer (Python)",
+          "company_name": "FinEdge Analytics",
+          "domain": "Fintech",
+          "match_score": 37.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_04",
+      "full_name": "Ananya Sen (Full Stack TypeScript)",
+      "desired_roles": [
+        "Full Stack Engineer",
+        "Software Engineer",
+        "Web Developer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.4,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 4,
+        "total_highly_relevant": 2
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_03",
+          "title": "Full Stack Engineer (Node & React)",
+          "company_name": "HyperScale Apps",
+          "domain": "Technology",
+          "match_score": 85.0,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_07",
+          "title": "Full Stack Web Developer",
+          "company_name": "EduLearn Interactive",
+          "domain": "EdTech",
+          "match_score": 85.0,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_02",
+          "title": "Frontend Engineer (Next.js)",
+          "company_name": "SaaSForge Systems",
+          "domain": "Technology",
+          "match_score": 48.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_11",
+          "title": "Golang Backend Developer",
+          "company_name": "KubeStream Systems",
+          "domain": "Cloud Infrastructure",
+          "match_score": 25.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_33",
+          "title": "Cybersecurity Analyst",
+          "company_name": "SecureBank India",
+          "domain": "Banking",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_05",
+      "full_name": "Vikram Nair (Mobile App)",
+      "desired_roles": [
+        "Mobile Developer",
+        "Flutter Developer",
+        "Android Developer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.6,
+        "precision@10": 0.3,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 5,
+        "total_relevant": 3,
+        "total_highly_relevant": 2
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_05",
+          "title": "Flutter Mobile Developer",
+          "company_name": "AppVentures Media",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_10",
+          "title": "Mobile App Engineering Intern",
+          "company_name": "FitPulse Health",
+          "domain": "Healthcare",
+          "match_score": 62.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_06",
+          "title": "Android Software Engineer",
+          "company_name": "PocketPay Global",
+          "domain": "Fintech",
+          "match_score": 35.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 25.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_11",
+          "title": "Golang Backend Developer",
+          "company_name": "KubeStream Systems",
+          "domain": "Cloud Infrastructure",
+          "match_score": 0.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_06",
+      "full_name": "Sneha Roy (Data Analytics Fresher)",
+      "desired_roles": [
+        "Data Analyst",
+        "Business Intelligence Analyst",
+        "Analytics Intern"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.5,
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9463,
+        "ndcg@10": 0.9957,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 7,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_21",
+          "title": "Junior Data Analyst",
+          "company_name": "CapitalView Partners",
+          "domain": "Finance",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_22",
+          "title": "Business Intelligence Analyst",
+          "company_name": "RetailPulse Insights",
+          "domain": "Retail",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_27",
+          "title": "Analytics Consulting Intern",
+          "company_name": "StratMetrics Advisory",
+          "domain": "Consulting",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_23",
+          "title": "Data Science Associate",
+          "company_name": "BioHealth AI Labs",
+          "domain": "Healthcare",
+          "match_score": 30.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_44",
+          "title": "Product Analyst",
+          "company_name": "StreamZ Media",
+          "domain": "Consumer Internet",
+          "match_score": 17.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 0.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_07",
+      "full_name": "Kavya Menon (Data Science & ML)",
+      "desired_roles": [
+        "Data Scientist",
+        "Machine Learning Engineer",
+        "AI Intern"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.5,
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9463,
+        "ndcg@10": 0.9957,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_30",
+          "title": "Healthcare Data Scientist",
+          "company_name": "CareSync Analytics",
+          "domain": "Healthcare",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_24",
+          "title": "Machine Learning Engineer",
+          "company_name": "CognitiveVision Tech",
+          "domain": "Technology",
+          "match_score": 85.0,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_23",
+          "title": "Data Science Associate",
+          "company_name": "BioHealth AI Labs",
+          "domain": "Healthcare",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_28",
+          "title": "Applied AI Research Intern",
+          "company_name": "DeepMinded Labs",
+          "domain": "AI Research",
+          "match_score": 42.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_05",
+          "title": "Flutter Mobile Developer",
+          "company_name": "AppVentures Media",
+          "domain": "Technology",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_21",
+          "title": "Junior Data Analyst",
+          "company_name": "CapitalView Partners",
+          "domain": "Finance",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_08",
+      "full_name": "Aditya Verma (AI/NLP Specialist)",
+      "desired_roles": [
+        "NLP Engineer",
+        "AI Engineer",
+        "LLM Engineer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.4,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 4,
+        "total_highly_relevant": 2
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_25",
+          "title": "NLP & AI Engineer",
+          "company_name": "LinguisticAI Global",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_28",
+          "title": "Applied AI Research Intern",
+          "company_name": "DeepMinded Labs",
+          "domain": "AI Research",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_23",
+          "title": "Data Science Associate",
+          "company_name": "BioHealth AI Labs",
+          "domain": "Healthcare",
+          "match_score": 38.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_24",
+          "title": "Machine Learning Engineer",
+          "company_name": "CognitiveVision Tech",
+          "domain": "Technology",
+          "match_score": 37.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_09",
+      "full_name": "Deepak Joshi (Data Engineering)",
+      "desired_roles": [
+        "Data Engineer",
+        "ETL Developer",
+        "Big Data Engineer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.4,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 4,
+        "total_highly_relevant": 2
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_26",
+          "title": "Associate Data Engineer",
+          "company_name": "FinStream Systems",
+          "domain": "Fintech",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_29",
+          "title": "Data Pipeline Engineer",
+          "company_name": "TeleData Networks",
+          "domain": "Telecom",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_12",
+          "title": "Backend Software Engineer (Python)",
+          "company_name": "FinEdge Analytics",
+          "domain": "Fintech",
+          "match_score": 45.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_21",
+          "title": "Junior Data Analyst",
+          "company_name": "CapitalView Partners",
+          "domain": "Finance",
+          "match_score": 25.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_05",
+          "title": "Flutter Mobile Developer",
+          "company_name": "AppVentures Media",
+          "domain": "Technology",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_41",
+          "title": "UI/UX Product Designer",
+          "company_name": "CreatoDesign Hub",
+          "domain": "Technology",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_10",
+      "full_name": "Siddharth Rao (DevOps & Cloud)",
+      "desired_roles": [
+        "DevOps Engineer",
+        "Cloud Engineer",
+        "Site Reliability Engineer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.5,
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9463,
+        "ndcg@10": 0.9957,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_31",
+          "title": "Junior DevOps Engineer",
+          "company_name": "CloudOps Automation",
+          "domain": "Cloud Infrastructure",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_32",
+          "title": "Site Reliability Engineering Intern",
+          "company_name": "ServerScale Networks",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_37",
+          "title": "Cloud Infrastructure Associate",
+          "company_name": "TerraCloud Ops",
+          "domain": "Cloud Infrastructure",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_20",
+          "title": "Cloud Backend Engineer",
+          "company_name": "InfraStack Labs",
+          "domain": "Cloud Infrastructure",
+          "match_score": 52.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_33",
+          "title": "Cybersecurity Analyst",
+          "company_name": "SecureBank India",
+          "domain": "Banking",
+          "match_score": 17.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_11",
+      "full_name": "Neha Kulkarni (Cybersecurity Intern)",
+      "desired_roles": [
+        "Security Analyst",
+        "Information Security Intern",
+        "SOC Analyst"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.4,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 4,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_33",
+          "title": "Cybersecurity Analyst",
+          "company_name": "SecureBank India",
+          "domain": "Banking",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_34",
+          "title": "SOC Security Intern",
+          "company_name": "ShieldDefense Technologies",
+          "domain": "Defense",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_38",
+          "title": "Information Security Associate",
+          "company_name": "CyberVanguard India",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_40",
+          "title": "Cloud Security Operations Specialist",
+          "company_name": "FinShield Infrastructure",
+          "domain": "Banking",
+          "match_score": 55.0,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 17.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_43",
+          "title": "Associate Product Manager",
+          "company_name": "FinNext Payments",
+          "domain": "Fintech",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_12",
+      "full_name": "Arjun Das (QA & Test Automation)",
+      "desired_roles": [
+        "QA Automation Engineer",
+        "Software Test Engineer",
+        "SDET"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.4,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 4,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_35",
+          "title": "QA Automation Engineer",
+          "company_name": "TestWave Software",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_36",
+          "title": "Software Test Engineer",
+          "company_name": "CareLogic Medical",
+          "domain": "Healthcare",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_39",
+          "title": "QA Automation Tester Intern",
+          "company_name": "QualityFirst Labs",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_03",
+          "title": "Full Stack Engineer (Node & React)",
+          "company_name": "HyperScale Apps",
+          "domain": "Technology",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_21",
+          "title": "Junior Data Analyst",
+          "company_name": "CapitalView Partners",
+          "domain": "Finance",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_13",
+      "full_name": "Tanvi Kapoor (UI/UX Design)",
+      "desired_roles": [
+        "UI/UX Designer",
+        "Product Designer",
+        "User Researcher"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 1.0,
+        "precision@10": 0.5,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_41",
+          "title": "UI/UX Product Designer",
+          "company_name": "CreatoDesign Hub",
+          "domain": "Technology",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_42",
+          "title": "Junior Interaction Designer",
+          "company_name": "BazaarDirect E-Commerce",
+          "domain": "E-commerce",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_46",
+          "title": "Junior UX Researcher",
+          "company_name": "HumanCentric Labs",
+          "domain": "Media",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_04",
+          "title": "Web UI Developer Intern",
+          "company_name": "DesignCode Studio",
+          "domain": "E-commerce",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_43",
+          "title": "Associate Product Manager",
+          "company_name": "FinNext Payments",
+          "domain": "Fintech",
+          "match_score": 25.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_11",
+          "title": "Golang Backend Developer",
+          "company_name": "KubeStream Systems",
+          "domain": "Cloud Infrastructure",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_14",
+      "full_name": "Karthik Reddy (Product Management)",
+      "desired_roles": [
+        "Associate Product Manager",
+        "Product Analyst",
+        "Product Operations"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.5,
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9463,
+        "ndcg@10": 0.9957,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 5,
+        "total_highly_relevant": 3
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_43",
+          "title": "Associate Product Manager",
+          "company_name": "FinNext Payments",
+          "domain": "Fintech",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_44",
+          "title": "Product Analyst",
+          "company_name": "StreamZ Media",
+          "domain": "Consumer Internet",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_45",
+          "title": "Product Operations Intern",
+          "company_name": "UrbanDrop Logistics",
+          "domain": "Consumer Internet",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_21",
+          "title": "Junior Data Analyst",
+          "company_name": "CapitalView Partners",
+          "domain": "Finance",
+          "match_score": 25.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_41",
+          "title": "UI/UX Product Designer",
+          "company_name": "CreatoDesign Hub",
+          "domain": "Technology",
+          "match_score": 17.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_archetype_15",
+      "full_name": "Varun Mehta (Embedded & Systems)",
+      "desired_roles": [
+        "Embedded Software Engineer",
+        "Firmware Engineer",
+        "Systems Programmer"
+      ],
+      "metrics": {
+        "precision@3": 1.0,
+        "precision@5": 0.8,
+        "precision@10": 0.4,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 7,
+        "total_relevant": 4,
+        "total_highly_relevant": 4
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_eval_47",
+          "title": "Embedded Software Engineer",
+          "company_name": "AutoDrive Embedded",
+          "domain": "Automotive",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_50",
+          "title": "Embedded Linux Systems Programmer",
+          "company_name": "RoboMotive Dynamics",
+          "domain": "Automotive",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_48",
+          "title": "Firmware Development Engineer",
+          "company_name": "SemiconChips India",
+          "domain": "Semiconductors",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_49",
+          "title": "IoT Systems Engineer Intern",
+          "company_name": "SmartGrid IoT",
+          "domain": "IoT",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_eval_01",
+          "title": "Junior React Developer",
+          "company_name": "PixelCraft Technologies",
+          "domain": "Technology",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_11",
+          "title": "Golang Backend Developer",
+          "company_name": "KubeStream Systems",
+          "domain": "Cloud Infrastructure",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_eval_41",
+          "title": "UI/UX Product Designer",
+          "company_name": "CreatoDesign Hub",
+          "domain": "Technology",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    }
+  ],
+  "excluded_profiles": []
+}

@@ -1,0 +1,332 @@
+{
+  "metadata": {
+    "dataset_version": "1.0.0-smoke",
+    "created_at": "2026-10-15T12:00:00Z",
+    "dataset_type": "synthetic_smoke_fixture",
+    "annotation_status": "synthetic",
+    "description": "Synthetic smoke-test fixture containing 3 candidate profiles, 6 job opportunities, and 18 exhaustive relevance judgments. Strictly for automated unit testing, metric calculation verification, and edge-case handling. NOT valid for reporting real-world matching performance.",
+    "relevance_scale": {
+      "0": "Not relevant — critical role, discipline, skill, or domain mismatch",
+      "1": "Partially relevant — adjacent role, partial skill overlap, or negotiable preferences",
+      "2": "Highly relevant — direct role match, strong core skill overlap, compatible preferences"
+    },
+    "annotators": [
+      "eval-lead-synthetic-agent",
+      "automated-rule-checker"
+    ]
+  },
+  "candidate_profiles": [
+    {
+      "id": "cand_smoke_01",
+      "full_name": "Alex Rivera (Frontend Archetype)",
+      "desired_roles": ["Frontend Engineer", "UI Developer"],
+      "candidate_skills": ["React", "TypeScript", "JavaScript", "HTML", "CSS", "TailwindCSS"],
+      "work_model": ["Remote", "Hybrid"],
+      "locations": ["San Francisco, CA", "Remote"],
+      "preferred_domains": ["Technology", "E-commerce"],
+      "years_exp": 1.0,
+      "education_text": ["B.S. in Computer Science"],
+      "notes": "Synthetic profile modeling a junior frontend web developer with modern React stack."
+    },
+    {
+      "id": "cand_smoke_02",
+      "full_name": "Maya Chen (Data Science Archetype)",
+      "desired_roles": ["Data Scientist", "Data Analyst", "Machine Learning Intern"],
+      "candidate_skills": ["Python", "SQL", "Pandas", "NumPy", "Scikit-learn", "Machine Learning"],
+      "work_model": ["Remote"],
+      "locations": ["Remote", "New York, NY"],
+      "preferred_domains": ["Healthcare", "Technology"],
+      "years_exp": 0.5,
+      "education_text": ["M.S. in Data Science"],
+      "notes": "Synthetic profile modeling an early-career data scientist with analytical Python stack."
+    },
+    {
+      "id": "cand_smoke_03",
+      "full_name": "Jordan Lee (Product Management Archetype)",
+      "desired_roles": ["Associate Product Manager", "Product Analyst"],
+      "candidate_skills": ["Product Strategy", "Agile", "User Research", "SQL", "Jira", "Wireframing"],
+      "work_model": ["Hybrid", "On-site"],
+      "locations": ["New York, NY"],
+      "preferred_domains": ["Fintech", "Finance"],
+      "years_exp": 1.5,
+      "education_text": ["B.A. in Economics"],
+      "notes": "Synthetic profile modeling an associate product manager with cross-functional skills."
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "opp_smoke_01",
+      "title": "Junior React Frontend Developer",
+      "company_name": "TechFlow Inc.",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": ["Remote", "San Francisco, CA"],
+      "required_skills": ["React", "TypeScript", "CSS"],
+      "required_experience_min": 0.0,
+      "required_experience_max": 2.0,
+      "education_requirements": "B.S. in Computer Science or related",
+      "status": "Published",
+      "notes": "Ideal target opportunity for Frontend archetype."
+    },
+    {
+      "id": "opp_smoke_02",
+      "title": "Data Science Intern",
+      "company_name": "HealthMetrics AI",
+      "domain": "Healthcare",
+      "opportunity_type": "Internship",
+      "work_model": "Remote",
+      "locations": ["Remote"],
+      "required_skills": ["Python", "SQL", "Machine Learning", "Pandas"],
+      "required_experience_min": 0.0,
+      "required_experience_max": 1.0,
+      "education_requirements": "Pursuing degree in Data Science, Statistics, or CS",
+      "status": "Published",
+      "notes": "Ideal target opportunity for Data Science archetype."
+    },
+    {
+      "id": "opp_smoke_03",
+      "title": "Associate Product Manager",
+      "company_name": "Capital Growth Labs",
+      "domain": "Fintech",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": ["New York, NY"],
+      "required_skills": ["Product Strategy", "Agile", "User Research"],
+      "required_experience_min": 1.0,
+      "required_experience_max": 3.0,
+      "education_requirements": "Bachelor's degree in Business, Economics, or Tech",
+      "status": "Published",
+      "notes": "Ideal target opportunity for Product Management archetype."
+    },
+    {
+      "id": "opp_smoke_04",
+      "title": "Senior Embedded Systems Engineer",
+      "company_name": "AeroHardware Systems",
+      "domain": "Aviation",
+      "opportunity_type": "Full-time",
+      "work_model": "On-site",
+      "locations": ["Dallas, TX"],
+      "required_skills": ["C++", "RTOS", "Embedded Linux", "Assembly"],
+      "required_experience_min": 5.0,
+      "required_experience_max": null,
+      "education_requirements": "B.S. or M.S. in Electrical or Computer Engineering",
+      "status": "Published",
+      "notes": "Hard negative control opportunity across all three candidate archetypes."
+    },
+    {
+      "id": "opp_smoke_05",
+      "title": "Full Stack Web Developer",
+      "company_name": "CloudScale Solutions",
+      "domain": "Technology",
+      "opportunity_type": "Full-time",
+      "work_model": "Remote",
+      "locations": ["Remote"],
+      "required_skills": ["React", "Python", "Docker", "PostgreSQL"],
+      "required_experience_min": 1.0,
+      "required_experience_max": 3.0,
+      "education_requirements": "Degree or equivalent bootcamp experience",
+      "status": "Published",
+      "notes": "Adjacent opportunity sharing skills with frontend and data science archetypes."
+    },
+    {
+      "id": "opp_smoke_06",
+      "title": "Business Intelligence Analyst",
+      "company_name": "Metro Data Corp",
+      "domain": "Finance",
+      "opportunity_type": "Full-time",
+      "work_model": "Hybrid",
+      "locations": ["New York, NY"],
+      "required_skills": ["SQL", "Power BI", "Excel", "Data Modeling"],
+      "required_experience_min": 1.0,
+      "required_experience_max": 2.5,
+      "education_requirements": "Bachelor's in Analytics, Economics, or Finance",
+      "status": "Published",
+      "notes": "Adjacent opportunity sharing skills and location with Product and Data archetypes."
+    }
+  ],
+  "judgments": [
+    {
+      "profile_id": "cand_smoke_01",
+      "opportunity_id": "opp_smoke_01",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": 2,
+      "adjudicated": true,
+      "evidence": "Exact match for Frontend Engineer role, full skill overlap (React, TypeScript, CSS), remote work model aligns.",
+      "notes": "Highly relevant primary positive."
+    },
+    {
+      "profile_id": "cand_smoke_01",
+      "opportunity_id": "opp_smoke_05",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": 1,
+      "adjudicated": true,
+      "evidence": "Partially relevant: candidate has React and web foundations, lacks Python/Docker, title is Full Stack.",
+      "notes": "Partially relevant secondary positive."
+    },
+    {
+      "profile_id": "cand_smoke_01",
+      "opportunity_id": "opp_smoke_02",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Disjoint technical domain: candidate is frontend web; opportunity is data science with Python/ML.",
+      "notes": "Irrelevant."
+    },
+    {
+      "profile_id": "cand_smoke_01",
+      "opportunity_id": "opp_smoke_03",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Role mismatch: candidate desires engineering roles, opportunity is product management.",
+      "notes": "Irrelevant."
+    },
+    {
+      "profile_id": "cand_smoke_01",
+      "opportunity_id": "opp_smoke_04",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Severe technical and experience mismatch: requires embedded C++ with 5+ years experience.",
+      "notes": "Hard negative."
+    },
+    {
+      "profile_id": "cand_smoke_01",
+      "opportunity_id": "opp_smoke_06",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Domain and role mismatch: Business Intelligence Analyst requires Power BI/Excel, candidate is React frontend.",
+      "notes": "Irrelevant."
+    },
+
+    {
+      "profile_id": "cand_smoke_02",
+      "opportunity_id": "opp_smoke_02",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": 2,
+      "adjudicated": true,
+      "evidence": "Direct role match (Data Scientist / ML Intern), strong skill overlap (Python, SQL, ML, Pandas), remote align.",
+      "notes": "Highly relevant primary positive."
+    },
+    {
+      "profile_id": "cand_smoke_02",
+      "opportunity_id": "opp_smoke_06",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": 1,
+      "adjudicated": true,
+      "evidence": "Partially relevant: candidate has strong SQL and analytical background, but role is BI/Power BI rather than DS/ML.",
+      "notes": "Partially relevant secondary positive."
+    },
+    {
+      "profile_id": "cand_smoke_02",
+      "opportunity_id": "opp_smoke_05",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": 1,
+      "adjudicated": true,
+      "evidence": "Partially relevant: candidate knows Python, but lacks React/Docker, role is Full Stack.",
+      "notes": "Partially relevant secondary positive."
+    },
+    {
+      "profile_id": "cand_smoke_02",
+      "opportunity_id": "opp_smoke_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Role and skill mismatch: requires React, TypeScript, CSS; candidate has zero frontend background.",
+      "notes": "Irrelevant."
+    },
+    {
+      "profile_id": "cand_smoke_02",
+      "opportunity_id": "opp_smoke_03",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Role mismatch: candidate seeks technical Data Science, opportunity is product strategy and agile.",
+      "notes": "Irrelevant."
+    },
+    {
+      "profile_id": "cand_smoke_02",
+      "opportunity_id": "opp_smoke_04",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Severe mismatch: requires embedded C++ and 5+ years experience, on-site in Dallas.",
+      "notes": "Hard negative."
+    },
+
+    {
+      "profile_id": "cand_smoke_03",
+      "opportunity_id": "opp_smoke_03",
+      "relevance": 2,
+      "annotator_1": 2,
+      "annotator_2": 2,
+      "adjudicated": true,
+      "evidence": "Direct role match (Associate Product Manager), domain match (Fintech), location match (New York), skills align (Agile, User Research, Product Strategy).",
+      "notes": "Highly relevant primary positive."
+    },
+    {
+      "profile_id": "cand_smoke_03",
+      "opportunity_id": "opp_smoke_06",
+      "relevance": 1,
+      "annotator_1": 1,
+      "annotator_2": 1,
+      "adjudicated": true,
+      "evidence": "Partially relevant: candidate desires Product Analyst, has SQL and Economics background, location matches (New York).",
+      "notes": "Partially relevant secondary positive."
+    },
+    {
+      "profile_id": "cand_smoke_03",
+      "opportunity_id": "opp_smoke_01",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Engineering role mismatch: candidate is product manager, opportunity is frontend React developer.",
+      "notes": "Irrelevant."
+    },
+    {
+      "profile_id": "cand_smoke_03",
+      "opportunity_id": "opp_smoke_02",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Technical mismatch: candidate lacks machine learning and scientific Python background.",
+      "notes": "Irrelevant."
+    },
+    {
+      "profile_id": "cand_smoke_03",
+      "opportunity_id": "opp_smoke_04",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Severe mismatch: candidate is business/product, opportunity is embedded systems hardware engineering.",
+      "notes": "Hard negative."
+    },
+    {
+      "profile_id": "cand_smoke_03",
+      "opportunity_id": "opp_smoke_05",
+      "relevance": 0,
+      "annotator_1": 0,
+      "annotator_2": 0,
+      "adjudicated": true,
+      "evidence": "Role mismatch: full stack software development requires coding skills outside product scope.",
+      "notes": "Irrelevant."
+    }
+  ]
+}

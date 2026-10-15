@@ -1,0 +1,296 @@
+{
+  "metadata": {
+    "evaluation_timestamp": "2026-10-15T07:10:46.411771+00:00",
+    "scoring_engine": "CareerPilot Heuristic Matching Engine v1.0",
+    "score_nature_disclaimer": "Scores are heuristic recommendations based on profile metadata, skill overlap, and domain alignment. They are not hiring probabilities, qualification guarantees, or employer endorsements.",
+    "is_synthetic_fixture": true,
+    "is_unverified_benchmark": false,
+    "metric_definitions": {
+      "Precision@K": "Fraction of top-K recommendations with relevance >= 1. K in [3, 5, 10].",
+      "Recall@K": "Fraction of total judged relevant items in pool retrieved in top-K. K in [5, 10].",
+      "NDCG@K": "Normalized Discounted Cumulative Gain with exponential gain (2^rel - 1). K in [5, 10].",
+      "MRR_highly_relevant": "Mean Reciprocal Rank of the first item with relevance == 2 (primary metric).",
+      "MRR_any_relevant": "Mean Reciprocal Rank of the first item with relevance >= 1 (secondary metric)."
+    }
+  },
+  "dataset_summary": {
+    "dataset_version": "1.0.0-smoke",
+    "dataset_type": "synthetic_smoke_fixture",
+    "annotation_status": "synthetic",
+    "total_candidate_profiles": 3,
+    "total_opportunities": 6,
+    "total_judgments": 18,
+    "evaluated_profiles_count": 3,
+    "excluded_profiles_count": 0
+  },
+  "macro_metrics": {
+    "num_evaluated_profiles": 3,
+    "precision@3": 0.6667,
+    "precision@5": 0.4667,
+    "precision@10": 0.2333,
+    "recall@5": 1.0,
+    "recall@5_profile_count": 3,
+    "recall@10": 1.0,
+    "recall@10_profile_count": 3,
+    "ndcg@5": 0.9944,
+    "ndcg@10": 0.9944,
+    "mrr_highly_relevant": 1.0,
+    "mrr_any_relevant": 1.0
+  },
+  "per_profile_results": [
+    {
+      "profile_id": "cand_smoke_01",
+      "full_name": "Alex Rivera (Frontend Archetype)",
+      "desired_roles": [
+        "Frontend Engineer",
+        "UI Developer"
+      ],
+      "metrics": {
+        "precision@3": 0.6667,
+        "precision@5": 0.4,
+        "precision@10": 0.2,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 2,
+        "total_highly_relevant": 1
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_smoke_01",
+          "title": "Junior React Frontend Developer",
+          "company_name": "TechFlow Inc.",
+          "domain": "Technology",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_smoke_05",
+          "title": "Full Stack Web Developer",
+          "company_name": "CloudScale Solutions",
+          "domain": "Technology",
+          "match_score": 42.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_smoke_02",
+          "title": "Data Science Intern",
+          "company_name": "HealthMetrics AI",
+          "domain": "Healthcare",
+          "match_score": 22.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_03",
+          "title": "Associate Product Manager",
+          "company_name": "Capital Growth Labs",
+          "domain": "Fintech",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_06",
+          "title": "Business Intelligence Analyst",
+          "company_name": "Metro Data Corp",
+          "domain": "Finance",
+          "match_score": 15.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_04",
+          "title": "Senior Embedded Systems Engineer",
+          "company_name": "AeroHardware Systems",
+          "domain": "Aviation",
+          "match_score": 0.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_smoke_02",
+      "full_name": "Maya Chen (Data Science Archetype)",
+      "desired_roles": [
+        "Data Scientist",
+        "Data Analyst",
+        "Machine Learning Intern"
+      ],
+      "metrics": {
+        "precision@3": 0.6667,
+        "precision@5": 0.6,
+        "precision@10": 0.3,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 0.9832,
+        "ndcg@10": 0.9832,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 3,
+        "total_highly_relevant": 1
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_smoke_02",
+          "title": "Data Science Intern",
+          "company_name": "HealthMetrics AI",
+          "domain": "Healthcare",
+          "match_score": 72.5,
+          "score_label": "Good Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_smoke_05",
+          "title": "Full Stack Web Developer",
+          "company_name": "CloudScale Solutions",
+          "domain": "Technology",
+          "match_score": 35.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_smoke_01",
+          "title": "Junior React Frontend Developer",
+          "company_name": "TechFlow Inc.",
+          "domain": "Technology",
+          "match_score": 32.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_06",
+          "title": "Business Intelligence Analyst",
+          "company_name": "Metro Data Corp",
+          "domain": "Finance",
+          "match_score": 17.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_smoke_03",
+          "title": "Associate Product Manager",
+          "company_name": "Capital Growth Labs",
+          "domain": "Fintech",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_04",
+          "title": "Senior Embedded Systems Engineer",
+          "company_name": "AeroHardware Systems",
+          "domain": "Aviation",
+          "match_score": 0.0,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    },
+    {
+      "profile_id": "cand_smoke_03",
+      "full_name": "Jordan Lee (Product Management Archetype)",
+      "desired_roles": [
+        "Associate Product Manager",
+        "Product Analyst"
+      ],
+      "metrics": {
+        "precision@3": 0.6667,
+        "precision@5": 0.4,
+        "precision@10": 0.2,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "ndcg@5": 1.0,
+        "ndcg@10": 1.0,
+        "mrr_highly_relevant": 1.0,
+        "mrr_any_relevant": 1.0,
+        "total_judged": 6,
+        "total_relevant": 2,
+        "total_highly_relevant": 1
+      },
+      "ranked_opportunities": [
+        {
+          "opportunity_id": "opp_smoke_03",
+          "title": "Associate Product Manager",
+          "company_name": "Capital Growth Labs",
+          "domain": "Fintech",
+          "match_score": 92.5,
+          "score_label": "Strong Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 2
+        },
+        {
+          "opportunity_id": "opp_smoke_06",
+          "title": "Business Intelligence Analyst",
+          "company_name": "Metro Data Corp",
+          "domain": "Finance",
+          "match_score": 42.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 1
+        },
+        {
+          "opportunity_id": "opp_smoke_02",
+          "title": "Data Science Intern",
+          "company_name": "HealthMetrics AI",
+          "domain": "Healthcare",
+          "match_score": 17.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_01",
+          "title": "Junior React Frontend Developer",
+          "company_name": "TechFlow Inc.",
+          "domain": "Technology",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_04",
+          "title": "Senior Embedded Systems Engineer",
+          "company_name": "AeroHardware Systems",
+          "domain": "Aviation",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        },
+        {
+          "opportunity_id": "opp_smoke_05",
+          "title": "Full Stack Web Developer",
+          "company_name": "CloudScale Solutions",
+          "domain": "Technology",
+          "match_score": 7.5,
+          "score_label": "Weak Match",
+          "data_coverage": "High",
+          "ground_truth_relevance": 0
+        }
+      ]
+    }
+  ],
+  "excluded_profiles": []
+}
