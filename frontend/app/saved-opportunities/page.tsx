@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Bookmark, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
-
+import { StudentNav } from "@/components/navigation/student-nav";
 import { Suspense } from "react";
 
 function SavedOpportunitiesContent() {
@@ -94,13 +95,28 @@ function SavedOpportunitiesContent() {
 
   return (
     <div className="min-h-screen bg-[#F6FAF7] flex flex-col">
+      <StudentNav />
       <main className="flex-grow container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#14261C] flex items-center gap-2">
-            <Bookmark className="w-8 h-8 text-[#1B5E3B] fill-current" />
-            Saved Opportunities
-          </h1>
-          <p className="text-gray-600 mt-2">Opportunities you&apos;ve bookmarked for later.</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Link href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">
+                Dashboard
+              </Link>
+              <span className="text-xs text-muted-foreground">/</span>
+              <span className="text-xs text-foreground font-semibold">Saved Opportunities</span>
+            </div>
+            <h1 className="text-3xl font-bold text-[#14261C] flex items-center gap-2">
+              <Bookmark className="w-8 h-8 text-[#1B5E3B] fill-current" />
+              Saved Opportunities
+            </h1>
+            <p className="text-gray-600 mt-1">Opportunities you&apos;ve bookmarked for later.</p>
+          </div>
+          <Link href="/opportunities">
+            <Button variant="outline" size="sm" className="bg-white">
+              Discover More
+            </Button>
+          </Link>
         </div>
 
         {error ? (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApplicationTracker } from "@/components/applications/application-tracker";
+import { StudentNav } from "@/components/navigation/student-nav";
 
 export const metadata: Metadata = {
   title: "Application Tracker | CareerPilot AI",
@@ -13,8 +14,10 @@ export const metadata: Metadata = {
 
 export default function ApplicationsPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#F6FAF7] p-4 sm:p-8">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="flex min-h-screen flex-col bg-[#F6FAF7]">
+      <StudentNav />
+      <main className="flex-1 p-4 sm:p-8">
+        <div className="mx-auto w-full max-w-6xl space-y-6">
         {/* Navigation Breadcrumb / Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -55,6 +58,7 @@ export default function ApplicationsPage() {
           <ApplicationTracker />
         </Suspense>
       </div>
-    </div>
-  );
+    </main>
+  </div>
+);
 }

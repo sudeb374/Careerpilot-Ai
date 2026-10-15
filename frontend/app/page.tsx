@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -11,10 +14,12 @@ import {
   GraduationCap,
   Leaf,
   MapPin,
+  Menu,
   Sparkles,
   Target,
   TrendingUp,
   Users,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -94,6 +99,8 @@ const mockOpportunities = [
 /* ------------------------------------------------------------------ */
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* ── Navigation ─────────────────────────────────────────────── */}
@@ -106,7 +113,7 @@ export default function Home() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-6 md:flex">
             <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
               Features
             </a>
@@ -116,15 +123,63 @@ export default function Home() {
             <a href="#benefits" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
               About
             </a>
-            <Button size="sm">Get Started</Button>
+            <Link href="/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Sign In
+            </Link>
+            <Link href="/register">
+              <Button size="sm">Get Started</Button>
+            </Link>
           </nav>
 
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </Button>
         </div>
+
+        {/* Mobile dropdown */}
+        {mobileMenuOpen && (
+          <div className="border-b border-border bg-card px-4 py-4 md:hidden space-y-3">
+            <a
+              href="#features"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Features
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              How It Works
+            </a>
+            <a
+              href="#benefits"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              About
+            </a>
+            <div className="pt-2 border-t border-border flex flex-col gap-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-medium text-foreground py-1 hover:text-primary"
+              >
+                Sign In
+              </Link>
+              <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                <Button size="sm" className="w-full">Get Started</Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1">
@@ -153,16 +208,20 @@ export default function Home() {
                   scrolling job boards and more time preparing.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Button
-                    size="lg"
-                    className="gap-2 bg-saffron text-saffron-foreground hover:bg-saffron/90 focus-visible:ring-saffron/50"
-                  >
-                    Get Started — It&apos;s Free
-                    <ArrowRight className="size-4" />
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    See How It Works
-                  </Button>
+                  <Link href="/register" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto gap-2 bg-saffron text-saffron-foreground hover:bg-saffron/90 focus-visible:ring-saffron/50"
+                    >
+                      Get Started — It&apos;s Free
+                      <ArrowRight className="size-4" />
+                    </Button>
+                  </Link>
+                  <a href="#how-it-works" className="w-full sm:w-auto">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                      See How It Works
+                    </Button>
+                  </a>
                 </div>
                 <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1"><CheckCircle2 className="size-3 text-primary" /> Free for students</span>
@@ -354,16 +413,20 @@ export default function Home() {
                 entry-level roles that actually match their skills and goals.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button
-                  size="lg"
-                  className="gap-2 bg-saffron text-saffron-foreground hover:bg-saffron/90 focus-visible:ring-saffron/50"
-                >
-                  Get Started — It&apos;s Free
-                  <ArrowRight className="size-4" />
-                </Button>
-                <Button variant="outline" size="lg">
-                  Learn More
-                </Button>
+                <Link href="/register" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto gap-2 bg-saffron text-saffron-foreground hover:bg-saffron/90 focus-visible:ring-saffron/50"
+                  >
+                    Get Started — It&apos;s Free
+                    <ArrowRight className="size-4" />
+                  </Button>
+                </Link>
+                <a href="#features" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    Learn More
+                  </Button>
+                </a>
               </div>
             </div>
           </div>

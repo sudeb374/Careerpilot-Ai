@@ -15,10 +15,19 @@ from app.schemas.profile import (
 EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
 # A robust, standard phone number regex (matches 10 digits potentially with separators and country code)
 PHONE_REGEX = re.compile(r'(?:(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})')
-LINKEDIN_REGEX = re.compile(r'(?:https?://)?(?:www\.)?linkedin\.com/in/[a-zA-Z0-9-]+')
-GITHUB_REGEX = re.compile(r'(?:https?://)?(?:www\.)?github\.com/[a-zA-Z0-9-]+')
-# Simple portfolio generic link (must start with http or www)
-PORTFOLIO_REGEX = re.compile(r'(?:https?://|www\.)(?!linkedin\.com|github\.com)[a-zA-Z0-9-]+\.(?:com|org|net|io|me|dev)(?:/[^\s]*)?')
+LINKEDIN_REGEX = re.compile(r'(?:https?://)?(?:[a-zA-Z0-9_\-]+\.)?linkedin\.com/(?:in|pub)/[a-zA-Z0-9_\-\.%]+/?(?:\?[^\s\)]*)?', re.IGNORECASE)
+GITHUB_REGEX = re.compile(r'(?:https?://)?(?:www\.)?github\.com/[a-zA-Z0-9_\-\.%]+/?(?:\?[^\s\)]*)?', re.IGNORECASE)
+PORTFOLIO_REGEX = re.compile(
+    r'(?<![a-zA-Z0-9@])(?:https?://)?(?:www\.)?(?!linkedin\.com|github\.com)\b[a-zA-Z0-9\-]{2,}'
+    r'\.(?:com|org|net|io|me|dev|site|app|vercel\.app|netlify\.app|pages\.dev|github\.io)(?:/[^\s\)]*)?',
+    re.IGNORECASE
+)
+
+def _clean_url(url: str) -> str:
+    cleaned = url.strip().rstrip(".,;)>]")
+    if not cleaned.startswith(("http://", "https://")):
+        cleaned = f"https://{cleaned.lstrip('/')}"
+    return cleaned
 
 # Section headers
 SECTION_REGEX = {
@@ -55,15 +64,29 @@ async def extract_structured_data(db: AsyncSession, parsed_text: str) -> ResumeS
 
 def _extract_contact(text: str) -> ResumeContact:
     emails = list(set(EMAIL_REGEX.findall(text)))
+    email_domains = {e.split("@")[-1].lower() for e in emails if "@" in e}
+
+    raw_linkedin = LINKEDIN_REGEX.findall(text)
+    linkedin = list(set(_clean_url(u) for u in raw_linkedin if u.strip()))
     
-    linkedin = list(set(LINKEDIN_REGEX.findall(text)))
-    github = list(set(GITHUB_REGEX.findall(text)))
+    raw_github = GITHUB_REGEX.findall(text)
+    github = list(set(_clean_url(u) for u in raw_github if u.strip()))
     
-    portfolio_candidates = list(set(PORTFOLIO_REGEX.findall(text)))
+    raw_portfolio = PORTFOLIO_REGEX.findall(text)
     portfolio = []
-    for p in portfolio_candidates:
-        if "@" not in p and p not in linkedin and p not in github:
-            portfolio.append(p)
+    degree_tokens = {"b.tech", "m.tech", "d.tech", "b.e", "m.e", "b.sc", "m.sc"}
+    for p in raw_portfolio:
+        clean_p = _clean_url(p)
+        lower_p = clean_p.lower()
+        domain = lower_p.replace("https://", "").replace("http://", "").split("/")[0].split(":")[0]
+        if domain in email_domains:
+            continue
+        if any(d in lower_p for d in degree_tokens):
+            continue
+        if any(l in lower_p for l in ["linkedin.com", "github.com"]):
+            continue
+        portfolio.append(clean_p)
+    portfolio = list(set(portfolio))
 
     phones = []
     # 1. Prefer candidates near contact headings or labels

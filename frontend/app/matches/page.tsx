@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchesList } from "@/components/opportunities/matches-list";
+import { StudentNav } from "@/components/navigation/student-nav";
 
 export const metadata: Metadata = {
   title: "Your Matches | CareerPilot AI",
@@ -12,8 +13,10 @@ export const metadata: Metadata = {
 
 export default function MatchesPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#F6FAF7] p-4 sm:p-8">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="flex min-h-screen flex-col bg-[#F6FAF7]">
+      <StudentNav />
+      <main className="flex-1 p-4 sm:p-8">
+        <div className="mx-auto w-full max-w-6xl space-y-6">
         {/* Header navigation */}
         <div className="flex items-center gap-4">
           <Link href="/dashboard" aria-label="Back to Dashboard">
@@ -44,6 +47,7 @@ export default function MatchesPage() {
           <MatchesList />
         </Suspense>
       </div>
-    </div>
-  );
+    </main>
+  </div>
+);
 }

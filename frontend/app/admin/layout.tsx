@@ -51,12 +51,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen flex-col bg-background">
       <nav className="border-b border-border bg-card px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold tracking-tight text-primary">CareerPilot Admin</h1>
+          <Link href="/admin/opportunities" className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tight text-primary">
+              CareerPilot <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Admin</span>
+            </span>
+          </Link>
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/admin/opportunities" className="text-sm font-medium text-foreground hover:text-primary">
+            <Link href="/admin/opportunities" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Opportunities
             </Link>
-            <Link href="/admin/ingestion" className="text-sm font-medium text-foreground hover:text-primary">
+            <Link href="/admin/ingestion" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Job Ingestion
             </Link>
           </div>

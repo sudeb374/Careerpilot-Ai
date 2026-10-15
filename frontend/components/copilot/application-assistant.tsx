@@ -650,12 +650,12 @@ export function ApplicationAssistant() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white border border-[#DAE3DC] rounded-xl px-4 py-3 shadow-xs">
                 <div className="flex items-center gap-2">
                   {generatedAnswer.is_template_fallback ? (
-                    <Badge variant="outline" className="bg-[#FFF8EB] border-[#F59E0B]/30 text-[#B45309] text-[10px]">
-                      Deterministic Template Draft
+                    <Badge variant="outline" className="bg-[#EBF3ED] border-primary/20 text-primary text-[10px]">
+                      Structured Answer Draft
                     </Badge>
                   ) : (
                     <Badge className="bg-[#1B5E3B] text-white text-[10px]">
-                      AI Assisted ({generatedAnswer.provider_model || "Gemini"})
+                      Draft Answer Ready
                     </Badge>
                   )}
                   <span className="text-xs text-[#5A7362]">

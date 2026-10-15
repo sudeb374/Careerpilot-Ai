@@ -144,7 +144,7 @@ describe("Career Copilot Deterministic Fallback UI Tests", () => {
 
       // Verify deterministic fallback badge and drafted letter are displayed
       await waitFor(() => {
-        expect(screen.getByText("Deterministic Template Draft")).toBeDefined();
+        expect(screen.getByText("Structured Letter Draft")).toBeDefined();
         expect(screen.getByText(/I am writing to express my interest in the Cloud Infrastructure Engineer role/i)).toBeDefined();
         expect(screen.getByText("Application for Cloud Infrastructure Engineer - Candidate Name")).toBeDefined();
       });
@@ -372,7 +372,7 @@ describe("Career Copilot Deterministic Fallback UI Tests", () => {
 
       // Verify deterministic fallback badge and answer are rendered
       await waitFor(() => {
-        expect(screen.getByText("Deterministic Template Draft")).toBeDefined();
+        expect(screen.getByText("Structured Answer Draft")).toBeDefined();
         expect(screen.getByText(/my technical experience with aws and terraform directly aligns/i)).toBeDefined();
       });
     });
@@ -656,7 +656,7 @@ describe("Career Copilot Deterministic Fallback UI Tests", () => {
       await user.click(analyzeBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/Deterministic Engine/i)).toBeDefined();
+        expect(screen.getByText(/Structured Recommendations Ready/i)).toBeDefined();
         expect(screen.getByText(/Data Completeness & Sufficiency/i)).toBeDefined();
         expect(screen.getByText(/Executive Recommendation Summary/i)).toBeDefined();
       });

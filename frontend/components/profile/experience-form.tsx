@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown, X, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   Command,
@@ -35,6 +35,17 @@ export type Experience = {
   end_date?: string | null;
   is_current: boolean;
 };
+
+export const COMMON_SOFT_SKILLS = [
+  "Communication",
+  "Leadership",
+  "Teamwork",
+  "Problem Solving",
+  "Critical Thinking",
+  "Adaptability",
+  "Time Management",
+  "Presentation",
+] as const;
 
 interface ExperienceFormProps {
   initialData?: Experience;
@@ -66,6 +77,9 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
   
   const [openCombo, setOpenCombo] = useState(false);
   const [isLoadingSkills, setIsLoadingSkills] = useState(false);
+  const [skillSearchQuery, setSkillSearchQuery] = useState("");
+  const [isAddingInlineSkill, setIsAddingInlineSkill] = useState(false);
+  const [inlineSkillFeedback, setInlineSkillFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +133,82 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
   
   const getSelectedSkillObjects = () => {
     return profileSkills.filter(ps => selectedSkillIds.has(ps.id));
+  };
+
+  /**
+   * Safely adds a missing technical or soft skill to the candidate's profile
+   * and automatically attaches it to the current experience without discarding unsaved form data.
+   */
+  const handleAddMissingSkill = async (skillNameToAdd: string) => {
+    const cleanName = skillNameToAdd.trim();
+    if (!cleanName) return;
+
+    // Check if already in profileSkills
+    const existing = profileSkills.find(
+      (ps) => ps.skill_name.toLowerCase() === cleanName.toLowerCase()
+    );
+    if (existing) {
+      if (!selectedSkillIds.has(existing.id)) {
+        setSelectedSkillIds((prev) => new Set([...prev, existing.id]));
+      }
+      setSkillSearchQuery("");
+      return;
+    }
+
+    setIsAddingInlineSkill(true);
+    setInlineSkillFeedback(null);
+
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setInlineSkillFeedback("Session expired. Please log in again.");
+        return;
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_URL}/api/v1/profile/skills`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          skill_name: cleanName,
+          proficiency: "Intermediate",
+        }),
+      });
+
+      if (res.ok) {
+        const newSkill: ProfileSkill = await res.json();
+        setProfileSkills((prev) => [...prev, newSkill]);
+        setSelectedSkillIds((prev) => new Set([...prev, newSkill.id]));
+        setSkillSearchQuery("");
+        setInlineSkillFeedback(`Added "${cleanName}" to profile skills and selected!`);
+        setTimeout(() => setInlineSkillFeedback(null), 3000);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setInlineSkillFeedback(errData.detail || "Could not add skill to profile.");
+      }
+    } catch {
+      setInlineSkillFeedback("Network error adding skill.");
+    } finally {
+      setIsAddingInlineSkill(false);
+    }
+  };
+
+  /**
+   * Quick handler for soft skills chips: toggles if already added, or creates & selects if not yet in profile.
+   */
+  const handleToggleOrAddSoftSkill = (softSkillName: string) => {
+    const existing = profileSkills.find(
+      (ps) => ps.skill_name.toLowerCase() === softSkillName.toLowerCase()
+    );
+    if (existing) {
+      toggleSkill(existing.id);
+    } else {
+      handleAddMissingSkill(softSkillName);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -275,7 +365,12 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
 
       {/* Skills Used Section */}
       <div className="space-y-3 pt-2 border-t border-border/50">
-        <Label>Skills Used</Label>
+        <div className="flex items-center justify-between">
+          <Label>Skills Used (Technical &amp; Soft Skills)</Label>
+          <span className="text-xs text-muted-foreground">
+            {selectedSkillIds.size} selected
+          </span>
+        </div>
         
         {isLoadingSkills ? (
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -288,18 +383,22 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
               {getSelectedSkillObjects().map((skill) => (
                 <Badge key={skill.id} variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 flex items-center gap-1 font-normal">
                   {skill.skill_name}
+                  {skill.proficiency && (
+                    <span className="text-[10px] opacity-75">({skill.proficiency})</span>
+                  )}
                   <button
                     type="button"
                     onClick={() => toggleSkill(skill.id)}
                     className="ml-1 hover:bg-primary/20 rounded-full p-0.5 focus:outline-none"
-                    disabled={isSaving}
+                    disabled={isSaving || isAddingInlineSkill}
+                    aria-label={`Remove ${skill.skill_name}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
               {getSelectedSkillObjects().length === 0 && (
-                 <span className="text-sm text-muted-foreground italic">No skills selected</span>
+                 <span className="text-sm text-muted-foreground italic">No skills selected yet</span>
               )}
             </div>
 
@@ -307,19 +406,47 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
               <PopoverTrigger
                 aria-expanded={openCombo}
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-muted-foreground font-normal"
-                disabled={isSaving || profileSkills.length === 0}
+                disabled={isSaving || isAddingInlineSkill}
               >
-                {profileSkills.length === 0 
-                  ? "Add skills to your profile first" 
-                  : "Search your profile skills..."}
+                {profileSkills.length === 0
+                  ? "Search or add skills (e.g., Python, Leadership)..."
+                  : "Search your skills or add new..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Search your skills..." />
+                  <CommandInput
+                    placeholder="Search your skills or type a new one..."
+                    value={skillSearchQuery}
+                    onValueChange={setSkillSearchQuery}
+                  />
                   <CommandList>
-                    <CommandEmpty>No matching skills found.</CommandEmpty>
-                    <CommandGroup>
+                    <CommandEmpty>
+                      <div className="p-3 text-center space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          {skillSearchQuery.trim()
+                            ? `"${skillSearchQuery}" is not in your profile skills yet.`
+                            : "No matching skills found."}
+                        </p>
+                        {skillSearchQuery.trim() && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={isAddingInlineSkill}
+                            onClick={() => handleAddMissingSkill(skillSearchQuery.trim())}
+                            className="w-full text-xs bg-primary text-primary-foreground gap-1.5"
+                          >
+                            {isAddingInlineSkill ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Plus className="size-3.5" />
+                            )}
+                            Add &quot;{skillSearchQuery.trim()}&quot; to profile &amp; select
+                          </Button>
+                        )}
+                      </div>
+                    </CommandEmpty>
+                    <CommandGroup heading="Your Saved Profile Skills">
                       {profileSkills.map((skill) => {
                         const isSelected = selectedSkillIds.has(skill.id);
                         return (
@@ -328,7 +455,6 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
                             value={skill.skill_name}
                             onSelect={() => {
                               toggleSkill(skill.id);
-                              // Keep it open for multi-select
                             }}
                           >
                             <Check
@@ -337,24 +463,96 @@ export function ExperienceForm({ initialData, onSave, onCancel, isSaving, error 
                                 isSelected ? "opacity-100" : "opacity-0"
                               )}
                             />
-                            {skill.skill_name}
+                            <span className="flex-1">{skill.skill_name}</span>
+                            {skill.proficiency && (
+                              <span className="text-[10px] text-muted-foreground">
+                                ({skill.proficiency})
+                              </span>
+                            )}
                           </CommandItem>
                         );
                       })}
                     </CommandGroup>
+
+                    {/* Action to add typed skill as a new profile skill if not an exact duplicate */}
+                    {skillSearchQuery.trim() &&
+                      !profileSkills.some(
+                        (ps) => ps.skill_name.toLowerCase() === skillSearchQuery.trim().toLowerCase()
+                      ) && (
+                        <div className="p-1 border-t border-border/50">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={isAddingInlineSkill}
+                            onClick={() => handleAddMissingSkill(skillSearchQuery.trim())}
+                            className="w-full justify-start text-xs text-primary hover:text-primary gap-1.5 font-medium h-8"
+                          >
+                            {isAddingInlineSkill ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Plus className="size-3.5" />
+                            )}
+                            Add &quot;{skillSearchQuery.trim()}&quot; as new skill
+                          </Button>
+                        </div>
+                      )}
                   </CommandList>
                 </Command>
               </PopoverContent>
             </Popover>
+
+            {/* Quick soft skill attachment chips */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Quick attach soft &amp; collaborative skills:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {COMMON_SOFT_SKILLS.map((softSkill) => {
+                  const existing = profileSkills.find(
+                    (ps) => ps.skill_name.toLowerCase() === softSkill.toLowerCase()
+                  );
+                  const isSelected = existing && selectedSkillIds.has(existing.id);
+
+                  return (
+                    <button
+                      key={softSkill}
+                      type="button"
+                      disabled={isSaving || isAddingInlineSkill}
+                      onClick={() => handleToggleOrAddSoftSkill(softSkill)}
+                      className={cn(
+                        "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border",
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary shadow-2xs"
+                          : "bg-[#EBF3ED] text-[#14261C] border-primary/20 hover:bg-primary/10 shadow-2xs"
+                      )}
+                    >
+                      {isSelected ? (
+                        <Check className="size-3" />
+                      ) : (
+                        <Plus className="size-3 text-primary" />
+                      )}
+                      {softSkill}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {inlineSkillFeedback && (
+              <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md p-1.5 animate-in fade-in-50">
+                {inlineSkillFeedback}
+              </p>
+            )}
           </>
         )}
       </div>
 
       <div className="flex justify-end space-x-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving || isAddingInlineSkill}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSaving} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">
+        <Button type="submit" disabled={isSaving || isAddingInlineSkill} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">
           {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSaving ? "Saving..." : "Save"}
         </Button>

@@ -321,8 +321,7 @@ export function JobResumeRecommendations() {
       `=== CAREERPILOT AI RESUME RECOMMENDATIONS ===`,
       `Target Role: ${analysisResult.opportunity_title} at ${analysisResult.company_name}`,
       `Resume Analyzed: ${analysisResult.resume_filename || "Active Resume"}`,
-      `Generated: ${new Date(analysisResult.created_at).toLocaleDateString()}`,
-      `Provider: ${analysisResult.provider === "gemini" ? "Gemini AI" : "Deterministic Engine"}`,
+      `Status: Recommendations Tailored`,
       `\n--- KEY STRENGTHS ---`,
       ...analysisResult.strengths.map((s) => `• [${s.category.toUpperCase()}] ${s.title}: ${s.relevance_explanation}`),
       `\n--- REQUIREMENT GAPS ---`,
@@ -567,12 +566,12 @@ export function JobResumeRecommendations() {
                   {analysisResult.provider === "gemini" ? (
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
-                      Gemini AI-Assisted ({analysisResult.provider_model || "Flash"})
+                      Recommendations Ready
                     </span>
                   ) : (
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 flex items-center gap-1">
                       <ShieldCheck className="w-3 h-3" />
-                      Deterministic Engine (Zero External Calls)
+                      Structured Recommendations Ready
                     </span>
                   )}
                   <span className="text-xs text-[#5A7362]">
@@ -632,11 +631,11 @@ export function JobResumeRecommendations() {
                 <div className="text-xl font-bold text-[#14261C]">{analysisResult.improvements.length} Rewrites</div>
               </div>
               <div className="bg-white/80 p-3 rounded-lg border border-border/80">
-                <div className="text-xs text-[#5A7362]">ATS Structure</div>
-                <div className="text-xl font-bold text-emerald-700">
+                <div className="text-xs text-[#5A7362]">Document Formatting</div>
+                <div className="text-base font-bold text-emerald-700">
                   {analysisResult.ats_guidance.some((a) => a.status === "improvement_needed")
-                    ? "Action Needed"
-                    : "Verified"}
+                    ? "Review Needed"
+                    : "Checks Complete"}
                 </div>
               </div>
             </div>
@@ -949,7 +948,7 @@ export function JobResumeRecommendations() {
                               {imp.is_gemini_assisted && (
                                 <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] flex items-center gap-1">
                                   <Sparkles className="w-2.5 h-2.5" />
-                                  Gemini Assisted
+                                  Tailored Suggestion
                                 </Badge>
                               )}
                               <Badge

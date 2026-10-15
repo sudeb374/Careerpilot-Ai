@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Loader2 } from "lucide-react";
 
 import { ProfilePicture } from "./profile-picture";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 
 export function ProfileForm() {
   const [isLoading, setIsLoading] = useState(true);
@@ -178,14 +179,14 @@ export function ProfileForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              name="location"
-              placeholder="e.g. San Francisco, CA"
+            <LocationAutocomplete
+              label="Location"
+              placeholder="e.g. Kolkata, Sector V, Pune, Bengaluru..."
+              singleSelect={true}
               value={formData.location}
-              onChange={handleChange}
+              onValueChange={(val) => setFormData((prev) => ({ ...prev, location: val }))}
               disabled={isSaving}
+              description="Type a city or locality for suggestions with postal records."
             />
           </div>
         </CardContent>

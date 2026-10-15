@@ -839,7 +839,7 @@ export function InterviewPrep() {
               {/* Action Toolbar */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Default Local Rubric Button (Zero API) */}
+                  {/* Evaluate My Answer Button */}
                   <Button
                     onClick={handleEvaluateLocal}
                     disabled={evaluatingLocal || evaluatingAI || !currentAnswer.trim()}
@@ -848,17 +848,17 @@ export function InterviewPrep() {
                     {evaluatingLocal ? (
                       <>
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        Evaluating Rubric...
+                        Evaluating Answer...
                       </>
                     ) : (
                       <>
                         <ShieldCheck className="w-4 h-4" />
-                        Evaluate with Rubric (Default / Offline)
+                        Evaluate My Answer
                       </>
                     )}
                   </Button>
 
-                  {/* Optional Gemini AI Feedback Button */}
+                  {/* AI Coaching Feedback Button */}
                   <Button
                     variant="outline"
                     onClick={handleEvaluateAI}
@@ -868,12 +868,12 @@ export function InterviewPrep() {
                     {evaluatingAI ? (
                       <>
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        Querying Gemini...
+                        Generating Feedback...
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 text-purple-600" />
-                        Get AI Feedback (uses Gemini quota)
+                        Get Detailed AI Coaching
                       </>
                     )}
                   </Button>
@@ -926,13 +926,13 @@ export function InterviewPrep() {
                       >
                         <Sparkles className="w-3 h-3 mr-1 inline" />
                         {currentAiEval.is_fallback
-                          ? "Local Rubric Fallback (Offline)"
-                          : `Gemini AI Coach (${currentAiEval.provider_model || "Flash"})`}
+                          ? "Rubric Evaluation Ready"
+                          : "AI Coaching Feedback Ready"}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs bg-emerald-50 text-[#1B5E3B] border-[#1B5E3B]/30">
                         <ShieldCheck className="w-3 h-3 mr-1 inline" />
-                        Deterministic Rubric Engine (Offline / Zero API)
+                        Rubric Evaluation Ready
                       </Badge>
                     )}
                   </div>

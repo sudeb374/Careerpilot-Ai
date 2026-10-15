@@ -899,11 +899,10 @@ export function ApplicationTracker() {
         <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-gray-50">
           <button
             onClick={() => setStatusFilter("ALL")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              statusFilter === "ALL"
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${statusFilter === "ALL"
                 ? "bg-[#1B5E3B] text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200/80"
-            }`}
+              }`}
           >
             All ({applications.length})
           </button>
@@ -925,11 +924,10 @@ export function ApplicationTracker() {
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  isSelected
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${isSelected
                     ? "bg-[#14261C] text-white shadow-xs"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200/80"
-                }`}
+                  }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${STATUS_CONFIG[st].dotClass}`}
@@ -959,9 +957,8 @@ export function ApplicationTracker() {
             <p className="text-sm text-gray-500 max-w-md mx-auto mt-1">
               {applications.length === 0
                 ? "Start by tracking active jobs or saving opportunities to follow up on later. Tracking allows you to manage deadlines, reminders, and interview progress."
-                : `No tracked records found for status "${statusFilter}"${
-                    searchQuery ? ` and query "${searchQuery}"` : ""
-                  }.`}
+                : `No tracked records found for status "${statusFilter}"${searchQuery ? ` and query "${searchQuery}"` : ""
+                }.`}
             </p>
           </div>
 
@@ -1096,13 +1093,12 @@ export function ApplicationTracker() {
 
                       {app.deadline && (
                         <div
-                          className={`flex items-center gap-1 px-2 py-1 rounded-md border ${
-                            deadlineDays !== null && deadlineDays < 0
+                          className={`flex items-center gap-1 px-2 py-1 rounded-md border ${deadlineDays !== null && deadlineDays < 0
                               ? "bg-gray-100 text-gray-600 border-gray-200"
                               : deadlineDays !== null && deadlineDays <= 3
-                              ? "bg-rose-50 text-rose-700 border-rose-200 font-semibold"
-                              : "bg-gray-50 text-gray-700 border-gray-200"
-                          }`}
+                                ? "bg-rose-50 text-rose-700 border-rose-200 font-semibold"
+                                : "bg-gray-50 text-gray-700 border-gray-200"
+                            }`}
                         >
                           <Calendar className="h-3.5 w-3.5 opacity-70" />
                           <span>
@@ -1112,8 +1108,8 @@ export function ApplicationTracker() {
                                 {deadlineDays < 0
                                   ? "(Passed)"
                                   : deadlineDays === 0
-                                  ? "(Today)"
-                                  : `(${deadlineDays}d left)`}
+                                    ? "(Today)"
+                                    : `(${deadlineDays}d left)`}
                               </span>
                             )}
                           </span>
@@ -1122,11 +1118,10 @@ export function ApplicationTracker() {
 
                       {app.reminder_at && (
                         <div
-                          className={`flex items-center gap-1 px-2 py-1 rounded-md border ${
-                            reminderDays !== null && reminderDays <= 0
+                          className={`flex items-center gap-1 px-2 py-1 rounded-md border ${reminderDays !== null && reminderDays <= 0
                               ? "bg-amber-100 text-amber-900 border-amber-300 font-semibold"
                               : "bg-amber-50 text-amber-800 border-amber-200"
-                          }`}
+                            }`}
                         >
                           <Bell className="h-3.5 w-3.5 text-amber-600" />
                           <span>
@@ -1266,11 +1261,10 @@ export function ApplicationTracker() {
                       type="button"
                       key={st}
                       onClick={() => setEditStatus(st)}
-                      className={`px-3 py-2 rounded-xl text-xs font-semibold border text-center transition-all ${
-                        editStatus === st
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold border text-center transition-all ${editStatus === st
                           ? "bg-[#1B5E3B] text-white border-[#1B5E3B] shadow-xs"
                           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
+                        }`}
                     >
                       {st}
                     </button>
@@ -1569,11 +1563,10 @@ export function ApplicationTracker() {
                         setNewAppliedAt(new Date().toISOString().slice(0, 10));
                       }
                     }}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      newStatus === "Applied"
+                    className={`p-3 rounded-xl border text-left transition-all ${newStatus === "Applied"
                         ? "bg-blue-50 border-blue-400 text-blue-900 ring-1 ring-blue-400"
                         : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="font-bold text-xs flex items-center gap-1.5">
                       <CheckCircle2 className="h-4 w-4 text-blue-600" />
@@ -1590,11 +1583,10 @@ export function ApplicationTracker() {
                       setNewStatus("Saved");
                       setNewAppliedAt("");
                     }}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      newStatus === "Saved"
+                    className={`p-3 rounded-xl border text-left transition-all ${newStatus === "Saved"
                         ? "bg-slate-50 border-slate-400 text-slate-900 ring-1 ring-slate-400"
                         : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="font-bold text-xs flex items-center gap-1.5">
                       <Briefcase className="h-4 w-4 text-slate-600" />

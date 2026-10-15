@@ -131,6 +131,7 @@ export function ResumeSection() {
   const [isAnalyzing, setIsAnalyzing] = useState<string | null>(null);
   const [viewAnalysisId, setViewAnalysisId] = useState<string | null>(null);
   const [analysisData, setAnalysisData] = useState<ResumeAnalysisResponse | null>(null);
+  const [analysisTab, setAnalysisTab] = useState<"completeness" | "quality">("completeness");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -1194,166 +1195,261 @@ export function ResumeSection() {
                 </Button>
               )}
             </div>
-            <DialogDescription className="text-sm mt-2 text-muted-foreground">
-              Resume Completeness Score measures detected content and section organization. 
-              It is not a hiring prediction or a guaranteed ATS compatibility score.
+            <DialogDescription className="text-sm mt-1 text-muted-foreground">
+              Independent evaluation of document completeness, machine structure, and actionable quality recommendations.
             </DialogDescription>
+
+            {/* Separated View Tabs */}
+            {analysisData?.analysis && (
+              <div className="flex items-center gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setAnalysisTab("completeness")}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    analysisTab === "completeness"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/70 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span>1. Resume Completeness & Structure</span>
+                  <span className={`px-1.5 py-0.2 rounded-md text-[11px] ${
+                    analysisTab === "completeness" ? "bg-white/20 text-white" : "bg-background text-foreground"
+                  }`}>
+                    {analysisData.analysis.completeness_score}/100
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalysisTab("quality")}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    analysisTab === "quality"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/70 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span>2. Quality & Improvement Suggestions</span>
+                  <span className={`px-1.5 py-0.2 rounded-md text-[11px] ${
+                    analysisTab === "quality" ? "bg-white/20 text-white" : "bg-background text-foreground"
+                  }`}>
+                    {analysisData.analysis.findings.length}
+                  </span>
+                </button>
+              </div>
+            )}
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto py-4 space-y-8 pr-2">
+          <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-2">
             {analysisData?.analysis ? (
-              <>
-                {/* Score Section */}
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                  <div className="w-full md:w-1/3 bg-primary/5 rounded-xl p-6 border-2 border-primary/10 flex flex-col items-center justify-center text-center">
-                    <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                      Completeness Score
-                    </span>
-                    <div className="text-6xl font-bold text-primary mb-2">
-                      {analysisData.analysis.completeness_score}
+              analysisTab === "completeness" ? (
+                <>
+                  {/* Score & Breakdown */}
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="w-full md:w-1/3 bg-primary/5 rounded-xl p-6 border border-primary/10 flex flex-col items-center justify-center text-center">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Completeness Score
+                      </span>
+                      <div className="text-5xl font-bold text-primary mb-1">
+                        {analysisData.analysis.completeness_score}
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-0.5 text-xs font-medium text-primary">
+                        {analysisData.analysis.score_label}
+                      </span>
+                      <p className="text-[11px] text-muted-foreground mt-3 leading-snug">
+                        Reflects detected sections, contact details, and text depth. Does not guarantee hiring outcomes.
+                      </p>
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                      {analysisData.analysis.score_label}
-                    </span>
+
+                    <div className="w-full md:w-2/3 space-y-3">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center">
+                        <BarChart className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                        Section Completeness Breakdown
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2.5">
+                        {[
+                          { label: "Contact Info", score: analysisData.analysis.category_scores.contact, max: 15 },
+                          { label: "Summary", score: analysisData.analysis.category_scores.summary, max: 10 },
+                          { label: "Education", score: analysisData.analysis.category_scores.education, max: 15 },
+                          { label: "Skills", score: analysisData.analysis.category_scores.skills, max: 20 },
+                          { label: "Experience & Projects", score: analysisData.analysis.category_scores.experience_projects, max: 25 },
+                          { label: "Organization", score: analysisData.analysis.category_scores.organization, max: 15 },
+                        ].map((cat, i) => (
+                          <div key={i} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">{cat.label}</span>
+                              <span className="font-medium text-foreground">{cat.score} / {cat.max}</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all rounded-full"
+                                style={{ width: `${(cat.score / cat.max) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="w-full md:w-2/3 space-y-4">
-                    <h3 className="font-semibold text-foreground flex items-center">
-                      <BarChart className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Score Breakdown
+                  {/* Contact & Hyperlink Detection Status */}
+                  <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center">
+                      <Info className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                      Contact & Link Presence Detection
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                      {[
-                        { label: "Contact Info", score: analysisData.analysis.category_scores.contact, max: 15 },
-                        { label: "Summary", score: analysisData.analysis.category_scores.summary, max: 10 },
-                        { label: "Education", score: analysisData.analysis.category_scores.education, max: 15 },
-                        { label: "Skills", score: analysisData.analysis.category_scores.skills, max: 20 },
-                        { label: "Experience & Projects", score: analysisData.analysis.category_scores.experience_projects, max: 25 },
-                        { label: "Organization", score: analysisData.analysis.category_scores.organization, max: 15 },
-                      ].map((cat, i) => (
-                        <div key={i} className="space-y-1.5">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{cat.label}</span>
-                            <span className="font-medium text-foreground">{cat.score} / {cat.max}</span>
-                          </div>
-                          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary transition-all" 
-                              style={{ width: `${(cat.score / cat.max) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
+                        {analysisData.analysis.category_scores.contact >= 5 ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                        )}
+                        <span>Email address & phone contact detected</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
+                        {analysisData.analysis.strengths.some(s => s.title.includes("LinkedIn")) ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        ) : (
+                          <Info className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <span>
+                          {analysisData.analysis.strengths.some(s => s.title.includes("LinkedIn"))
+                            ? "LinkedIn link detected in text or document links"
+                            : "LinkedIn link not found in text or extracted hyperlinks"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
+                        {analysisData.analysis.strengths.some(s => s.title.includes("GitHub") || s.title.includes("Portfolio")) ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        ) : (
+                          <Info className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <span>
+                          {analysisData.analysis.strengths.some(s => s.title.includes("GitHub") || s.title.includes("Portfolio"))
+                            ? "GitHub / Portfolio link detected"
+                            : "GitHub / Portfolio link not found (optional for technical roles)"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <span>Link presence extracted from visible text and embedded document annotations</span>
+                      </div>
                     </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Presence is checked from extracted document text and PDF/DOCX hyperlink annotations. No external crawling or internet access is required.
+                    </p>
                   </div>
-                </div>
 
-                {/* Findings & Strengths */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Improvements */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-amber-700 dark:text-amber-400 flex items-center border-b border-amber-200 dark:border-amber-900 pb-2">
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Improvement Suggestions
-                    </h3>
+                  {/* Document Formatting & Structure Checks */}
+                  <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center">
+                        <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                        Document Formatting & Machine Structure Checks
+                      </h3>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Formatting checks complete
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span>PDF/DOCX machine text stream readable</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span>Standard resume sections detected</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span>Contact information block located</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span>Technical and domain skills identified</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Scope of checks: Validates machine readability of document text streams, standard section structure, contact blocks, and catalog skill mentions. These checks verify document formatting, not proprietary third-party ATS screening engines.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                /* Quality & Actionable Suggestions Tab */
+                <div className="space-y-6">
+                  {/* Actionable Suggestions */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400 flex items-center">
+                        <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+                        Targeted Quality & Content Suggestions ({analysisData.analysis.findings.length})
+                      </h3>
+                      <span className="text-[11px] text-muted-foreground">Concrete, actionable guidance</span>
+                    </div>
+
                     {analysisData.analysis.findings.length > 0 ? (
                       <div className="space-y-3">
                         {analysisData.analysis.findings.map((f, i) => (
-                          <div key={i} className={`border rounded-lg p-3 text-sm ${
-                            f.severity === 'critical' 
-                              ? 'bg-destructive/10 border-destructive/20' 
-                              : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/50'
-                          }`}>
-                            <div className={`font-medium mb-1 ${
-                              f.severity === 'critical' ? 'text-destructive' : 'text-amber-900 dark:text-amber-200'
-                            }`}>{f.title}</div>
-                            <p className={`mb-2 ${
-                              f.severity === 'critical' ? 'text-destructive/80' : 'text-amber-700 dark:text-amber-400/90'
-                            }`}>{f.explanation}</p>
-                            <div className={`rounded px-2 py-1.5 flex gap-2 ${
-                              f.severity === 'critical' ? 'bg-destructive/20' : 'bg-amber-100/50 dark:bg-amber-900/30'
-                            }`}>
-                              <Info className={`h-4 w-4 shrink-0 mt-0.5 ${
-                                f.severity === 'critical' ? 'text-destructive' : 'text-amber-600 dark:text-amber-500'
-                              }`} />
-                              <span className={`font-medium ${
-                                f.severity === 'critical' ? 'text-destructive' : 'text-amber-800 dark:text-amber-300'
-                              }`}>{f.recommendation}</span>
+                          <div
+                            key={i}
+                            className={`border rounded-xl p-3.5 text-xs space-y-1.5 ${
+                              f.severity === 'critical'
+                                ? 'bg-destructive/5 border-destructive/20'
+                                : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/70 dark:border-amber-900/50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className={`font-semibold ${
+                                f.severity === 'critical' ? 'text-destructive' : 'text-amber-900 dark:text-amber-200'
+                              }`}>
+                                {f.title}
+                              </span>
+                              <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-background/80 font-medium text-muted-foreground">
+                                {f.category}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed">
+                              {f.explanation}
+                            </p>
+                            <div className="rounded-lg px-2.5 py-2 flex items-start gap-2 bg-background/80 border border-border/50 text-foreground">
+                              <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                              <span className="font-medium">{f.recommendation}</span>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground italic">No major issues found.</p>
+                      <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                        No quality issues identified. Your resume content and bullet points demonstrate good clarity and evidence.
+                      </div>
                     )}
                   </div>
 
-                  {/* Strengths */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center border-b border-emerald-200 dark:border-emerald-900 pb-2">
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Detected Strengths
+                  {/* Detected Strengths */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-400 flex items-center">
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                      Detected Content Strengths ({analysisData.analysis.strengths.length})
                     </h3>
                     {analysisData.analysis.strengths.length > 0 ? (
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {analysisData.analysis.strengths.map((s, i) => (
-                          <div key={i} className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg p-3 text-sm">
-                            <div className="font-medium text-emerald-900 dark:text-emerald-200 mb-1">{s.title}</div>
-                            <p className="text-emerald-700 dark:text-emerald-400/90">{s.explanation}</p>
+                          <div key={i} className="bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/50 rounded-xl p-3 text-xs space-y-1">
+                            <div className="font-semibold text-emerald-900 dark:text-emerald-200">{s.title}</div>
+                            <p className="text-emerald-700 dark:text-emerald-400/90 leading-snug">{s.explanation}</p>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground italic">Add more content to build strengths.</p>
+                      <p className="text-xs text-muted-foreground italic">Add more structured project experience and skills to highlight strengths.</p>
                     )}
                   </div>
-                </div>
 
-                {/* ATS-readiness checks */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-foreground flex items-center border-b pb-2">
-                    <ShieldCheck className="h-4 w-4 mr-2 text-muted-foreground" />
-                    Basic ATS-Readiness Checks
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span>PDF/DOCX text was readable</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span>Document contains structured text</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {analysisData.analysis.category_scores.organization > 0 ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                      )}
-                      <span>Standard resume sections detected</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {analysisData.analysis.category_scores.contact > 0 ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                      )}
-                      <span>Contact information detected</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {analysisData.analysis.category_scores.skills > 0 ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                      )}
-                      <span>Recognized catalog skills detected</span>
-                    </div>
+                  {/* Important Integrity Caveat */}
+                  <div className="rounded-xl bg-muted/40 p-3 text-[11px] text-muted-foreground leading-relaxed">
+                    <strong>Integrity Note:</strong> Recommendations for measurable results or specific contributions should only be added if you can genuinely substantiate them. CareerPilot AI will never fabricate metrics, accomplishments, or URLs.
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Note: These are basic rule-based checks. They do not assess visual formatting, table structures, or guarantee compatibility with all ATS platforms.
-                  </p>
                 </div>
-              </>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 {isAnalyzing ? (

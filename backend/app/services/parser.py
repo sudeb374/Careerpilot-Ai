@@ -16,6 +16,18 @@ def normalize_text(text: str) -> str:
     text = re.sub(r'\n{3,}', '\n\n', text)
     return text.strip()
 
+def _normalize_link(uri: str | None) -> str | None:
+    if not uri or not isinstance(uri, str):
+        return None
+    uri = uri.strip()
+    if uri.startswith(("http://", "https://")):
+        return uri
+    if uri.startswith("www."):
+        return f"https://{uri}"
+    if any(domain in uri.lower() for domain in ["linkedin.com", "github.com", "gitlab.com", "portfolio", "vercel.app", "netlify.app", "pages.dev"]):
+        return f"https://{uri.lstrip('/')}"
+    return None
+
 def parse_pdf(file_bytes: bytes) -> str:
     try:
         doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -34,9 +46,9 @@ def parse_pdf(file_bytes: bytes) -> str:
         
         for link in page.get_links():
             if link.get("kind") == fitz.LINK_URI and link.get("uri"):
-                uri = link.get("uri")
-                if uri.startswith("http"):
-                    urls.append(uri)
+                normalized = _normalize_link(link.get("uri"))
+                if normalized:
+                    urls.append(normalized)
             
     doc.close()
     
@@ -44,7 +56,7 @@ def parse_pdf(file_bytes: bytes) -> str:
         raise NoReadableTextError("No readable text could be extracted. Scanned documents or image-only PDFs are not currently supported.")
         
     if urls:
-        text_blocks.append("Embedded Links:\n" + "\n".join(set(urls)))
+        text_blocks.append("Embedded Links:\n" + "\n".join(sorted(set(urls))))
         
     raw_text = "\n\n".join(text_blocks)
     return normalize_text(raw_text)
@@ -55,15 +67,15 @@ def parse_docx(file_bytes: bytes) -> str:
     except Exception as e:
         raise ParserError(f"Failed to open DOCX: {str(e)}")
         
-        raise ParserError(f"Failed to open DOCX: {str(e)}")
-        
     text_blocks = []
     urls = []
     
     for rel in doc.part.rels.values():
-        if rel.is_external and hasattr(rel, "target_ref") and rel.target_ref:
-            if rel.target_ref.startswith("http"):
-                urls.append(rel.target_ref)
+        if getattr(rel, "is_external", False) and hasattr(rel, "target_ref") and rel.target_ref:
+            normalized = _normalize_link(rel.target_ref)
+            if normalized:
+                urls.append(normalized)
+
     # Extract paragraphs and tables in order from the body
     for element in doc.element.body:
         if element.tag.endswith('p'):
@@ -83,14 +95,11 @@ def parse_docx(file_bytes: bytes) -> str:
                 if row_text:
                     text_blocks.append(" | ".join(row_text))
                     
-                if row_text:
-                    text_blocks.append(" | ".join(row_text))
-                    
     if not text_blocks and not urls:
         raise NoReadableTextError("No readable text could be extracted from this DOCX file.")
         
     if urls:
-        text_blocks.append("Embedded Links:\n" + "\n".join(set(urls)))
+        text_blocks.append("Embedded Links:\n" + "\n".join(sorted(set(urls))))
         
     raw_text = "\n\n".join(text_blocks)
     return normalize_text(raw_text)

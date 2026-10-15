@@ -31,17 +31,34 @@ export async function login(formData: FormData) {
   redirect(nextDestination);
 }
 
+function getSiteOrigin(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
 export async function signup(formData: FormData) {
   const supabase = await createClient();
 
-  // URL to redirect to after email confirmation
-  const origin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  const origin = getSiteOrigin();
+  const rawNext = formData.get("next") as string | null;
+  const safeNext = sanitizeRedirectUrl(rawNext, "/dashboard");
+  const callbackUrl = safeNext && safeNext !== "/dashboard"
+    ? `${origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
+    : `${origin}/auth/callback`;
 
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: callbackUrl,
       data: {
         full_name: formData.get("full_name") as string,
       }
@@ -59,7 +76,41 @@ export async function signup(formData: FormData) {
     return { error: message };
   }
 
-  return { success: "Check your email to continue sign in process" };
+  return { success: "Check your email to continue sign in process", email: data.email };
+}
+
+export async function resendConfirmationEmail(formData: FormData) {
+  const supabase = await createClient();
+  const email = (formData.get("email") as string)?.trim();
+  const rawNext = formData.get("next") as string | null;
+
+  if (!email) {
+    return { error: "Email address is required." };
+  }
+
+  const origin = getSiteOrigin();
+  const safeNext = sanitizeRedirectUrl(rawNext, "/dashboard");
+  const callbackUrl = safeNext && safeNext !== "/dashboard"
+    ? `${origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
+    : `${origin}/auth/callback`;
+
+  try {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: callbackUrl,
+      },
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+    return { success: "Verification email resent successfully. Please check your inbox." };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to resend confirmation email.";
+    return { error: message };
+  }
 }
 
 export async function signOut() {
@@ -71,7 +122,7 @@ export async function signOut() {
 
 export async function resetPassword(formData: FormData) {
   const supabase = await createClient();
-  const origin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  const origin = getSiteOrigin();
 
   const email = formData.get("email") as string;
   try {

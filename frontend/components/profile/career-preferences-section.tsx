@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { cn } from "@/lib/utils";
 
 type CareerPreferences = {
@@ -433,12 +434,13 @@ export function CareerPreferencesSection() {
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2">
-          <MultiSelectField
+          <LocationAutocomplete
             label="Preferred Locations"
-            placeholder="E.g., Kolkata, Remote, Bengaluru..."
+            placeholder="Type a city or locality (e.g., Kolkata, Sector V, Pune, Hinjawadi)..."
             values={prefs.locations}
             onChange={(v) => setPrefs({ ...prefs, locations: v })}
             disabled={isSaving}
+            description="Add target work locations. Suggestions include Indian cities, localities, and postal zones."
           />
 
           <TriStateToggle

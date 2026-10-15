@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -41,13 +42,20 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
         )
 
     structured = ResumeStructuredData.model_validate(resume.structured_data)
-    print(f"MOCKED DB DATA: {resume.structured_data}")
-    print(f"DEBUG IN PYTEST: {type(structured.contact)=}")
+    analysis_data = compute_resume_analysis(structured, resume.parsed_text or "")
+
+    resume.analysis_data = analysis_data.model_dump(mode="json")
+    await db.commit()
+    await db.refresh(resume)
+
+    return ResumeAnalysisResponse(
+        id=resume.id,
+        status="success",
+        analysis=analysis_data
+    )
 
 
-
-    # Scoring and Findings
-
+def compute_resume_analysis(structured: ResumeStructuredData, parsed_text: str = "") -> ResumeAnalysisData:
     findings: list[ResumeFinding] = []
     strengths: list[ResumeFinding] = []
     
@@ -59,10 +67,8 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
     score_organization = 0
 
     # --- 1. Contact (15 points) ---
-    score_contact = 0
     has_email = bool(structured.contact.emails)
     has_phone = bool(structured.contact.phones)
-    has_links = bool(structured.contact.linkedin_urls or structured.contact.github_urls or structured.contact.portfolio_urls)
     
     if has_email: score_contact += 10
     if has_phone: score_contact += 5
@@ -89,22 +95,57 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
             recommendation="Add your email address and phone number to the header of your resume so employers can reach you."
         ))
 
-    if has_links:
+    # Contact Link Detection (LinkedIn, GitHub, Portfolio)
+    # Rules: Do not require internet access / crawling. Report presence accurately.
+    if structured.contact.linkedin_urls:
         strengths.append(ResumeFinding(
-            identifier="contact_links", category="contact", severity="info",
-            title="Professional Links Detected",
-            explanation="Professional URLs (like LinkedIn, GitHub, or a portfolio) were successfully verified.",
-            recommendation="Ensure your external profiles are up-to-date and present a professional image."
+            identifier="linkedin_detected", category="contact", severity="info",
+            title="LinkedIn Link Detected",
+            explanation=f"LinkedIn link detected ({structured.contact.linkedin_urls[0]}). Found in resume text or extracted hyperlinks.",
+            recommendation="Ensure your external profiles are up to date and consistent with your resume."
+        ))
+    else:
+        findings.append(ResumeFinding(
+            identifier="linkedin_optional", category="contact", severity="low",
+            title="Optional: Add LinkedIn Profile",
+            explanation="LinkedIn link not found in the resume text or extracted hyperlinks.",
+            recommendation="Adding a LinkedIn profile link is an optional, role-appropriate way for reviewers to learn more about your background."
+        ))
+
+    has_code_or_portfolio = bool(structured.contact.github_urls or structured.contact.portfolio_urls)
+    if has_code_or_portfolio:
+        all_links = structured.contact.github_urls + structured.contact.portfolio_urls
+        strengths.append(ResumeFinding(
+            identifier="portfolio_detected", category="contact", severity="info",
+            title="GitHub / Portfolio Link Detected",
+            explanation=f"GitHub/Portfolio link detected ({all_links[0]}). Found in resume text or extracted hyperlinks.",
+            recommendation="Ensure linked repositories include concise README files and live demos where applicable."
+        ))
+    else:
+        findings.append(ResumeFinding(
+            identifier="portfolio_optional", category="contact", severity="low",
+            title="Optional: Add GitHub or Portfolio",
+            explanation="GitHub/Portfolio link not found in the resume text or extracted hyperlinks.",
+            recommendation="For technical and engineering roles, adding a link to your GitHub or personal portfolio is an optional, high-impact addition when available."
         ))
 
     # --- 2. Summary (10 points) ---
-    if structured.sections.summary:
+    summary_text = (structured.sections.summary or "").strip()
+    if len(summary_text) >= 30:
         score_summary = 10
         strengths.append(ResumeFinding(
             identifier="summary_present", category="summary", severity="info",
             title="Professional Summary Detected",
-            explanation="A professional summary section was found.",
+            explanation="A professional summary section was found with substantive content.",
             recommendation="Ensure your summary highlights your unique value proposition rather than just stating your objective."
+        ))
+    elif len(summary_text) > 0:
+        score_summary = 5
+        findings.append(ResumeFinding(
+            identifier="summary_short", category="summary", severity="low",
+            title="Brief Professional Summary",
+            explanation="A summary section header was identified, but contains very brief content.",
+            recommendation="Expand your summary to 2-3 focused sentences articulating your target role and top skills."
         ))
     else:
         score_summary = 0
@@ -116,13 +157,22 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
         ))
 
     # --- 3. Education (15 points) ---
-    if structured.sections.education:
+    edu_text = (structured.sections.education or "").strip()
+    if len(edu_text) >= 30:
         score_education = 15
         strengths.append(ResumeFinding(
             identifier="education_present", category="education", severity="info",
             title="Education Section Detected",
             explanation="An education section was recognized.",
             recommendation="Make sure to list your graduation date, degree, and major clearly."
+        ))
+    elif len(edu_text) > 0:
+        score_education = 8
+        findings.append(ResumeFinding(
+            identifier="education_brief", category="education", severity="medium",
+            title="Brief Education Details",
+            explanation="An education heading was found, but extracted content is limited.",
+            recommendation="Detail your degree, university or institute name, and expected graduation year."
         ))
     else:
         score_education = 0
@@ -161,10 +211,12 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
         ))
 
     # --- 5. Projects and Experience (25 points max) ---
-    has_projects = bool(structured.sections.projects)
-    has_experience = bool(structured.sections.experience)
+    exp_text = (structured.sections.experience or "").strip()
+    proj_text = (structured.sections.projects or "").strip()
+    has_substantive_exp = len(exp_text) >= 40
+    has_substantive_proj = len(proj_text) >= 40
     
-    if has_experience and has_projects:
+    if has_substantive_exp and has_substantive_proj:
         score_projects_experience = 25
         strengths.append(ResumeFinding(
             identifier="exp_proj_both", category="experience", severity="info",
@@ -172,7 +224,7 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
             explanation="Both professional experience and projects were detected.",
             recommendation="Ensure you use measurable metrics to describe your outcomes in both sections."
         ))
-    elif has_experience:
+    elif has_substantive_exp:
         score_projects_experience = 25
         strengths.append(ResumeFinding(
             identifier="exp_only", category="experience", severity="info",
@@ -180,12 +232,12 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
             explanation="Experience section found. Projects can be optional if you have extensive experience.",
             recommendation="Consider describing project outcomes with measurable evidence where accurate."
         ))
-    elif has_projects:
-        score_projects_experience = 20  # Fair score for students without prof experience
+    elif has_substantive_proj:
+        score_projects_experience = 20
         strengths.append(ResumeFinding(
             identifier="proj_only", category="experience", severity="info",
             title="Projects Building Experience",
-            explanation="Projects section found. This is excellent evidence of your skills if you don't have formal experience yet.",
+            explanation="Projects section found. This provides strong evidence of your abilities.",
             recommendation="Ensure your project descriptions highlight your specific contributions and technical stack."
         ))
         findings.append(ResumeFinding(
@@ -193,6 +245,14 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
             title="No Professional Experience",
             explanation="No formal experience section was recognized.",
             recommendation="If you have internships or relevant jobs, ensure they are clearly labeled under 'Experience'."
+        ))
+    elif exp_text or proj_text:
+        score_projects_experience = 10
+        findings.append(ResumeFinding(
+            identifier="brief_exp_proj", category="experience", severity="medium",
+            title="Brief Project or Experience Information",
+            explanation="A section heading was found, but very few details or bullet points were detected.",
+            recommendation="Add descriptive bullet points detailing the problems you solved and tools you applied."
         ))
     else:
         score_projects_experience = 0
@@ -203,8 +263,50 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
             recommendation="It is critical to add either an 'Experience' or 'Projects' section to demonstrate your practical abilities."
         ))
 
-    # --- 6. Section Organization (15 points) ---
-    sections_found = sum(1 for v in [structured.sections.summary, structured.sections.education, structured.sections.experience, structured.sections.skills, structured.sections.projects] if v)
+    # --- 6. Quality & Actionable Content Recommendations ---
+    # Bullet specificity, active contributions, measurable results
+    combined_body = f"{exp_text}\n{proj_text}".lower()
+    if combined_body:
+        passive_indicators = ["worked on", "assisted with", "helped to", "responsible for", "participated in", "member of", "was involved in"]
+        active_indicators = ["built", "developed", "architected", "engineered", "implemented", "created", "designed", "led", "automated", "optimized", "refactored"]
+
+        has_passive = any(p in combined_body for p in passive_indicators)
+        has_active = any(a in combined_body for a in active_indicators)
+
+        if has_passive:
+            findings.append(ResumeFinding(
+                identifier="contribution_clarity", category="experience", severity="medium",
+                title="Clarify Specific Individual Contributions",
+                explanation="Some project or experience bullets use general phrasing ('worked on', 'responsible for') rather than specifying your direct contribution.",
+                recommendation="A project bullet would be clearer if it described the candidate's specific contribution (e.g., 'Architected database schema and built REST API' instead of 'Worked on backend')."
+            ))
+        elif has_active:
+            strengths.append(ResumeFinding(
+                identifier="strong_action_verbs", category="experience", severity="info",
+                title="Action-Oriented Contribution Language",
+                explanation="Your project or experience bullets use active verbs describing concrete technical ownership.",
+                recommendation="Continue leading each bullet point with strong action verbs that highlight what you personally built or achieved."
+            ))
+
+        # Check for measurable results
+        has_metrics = bool(re.search(r'\b(?:\d+%(?:\s+increase|\s+reduction|\s+growth|\s+improvement)?|\d+\+?\s*(?:users|clients|requests|ms|seconds|minutes|downloads|queries|endpoints))\b', combined_body))
+        if has_metrics:
+            strengths.append(ResumeFinding(
+                identifier="measurable_results_detected", category="experience", severity="info",
+                title="Measurable Outcomes Detected",
+                explanation="Your descriptions include quantifiable indicators or scale (percentages, latency, or counts).",
+                recommendation="Be prepared to substantiate any metrics cited during technical interview discussions."
+            ))
+        elif len(combined_body) >= 60:
+            findings.append(ResumeFinding(
+                identifier="measurable_results_suggestion", category="experience", severity="low",
+                title="Consider Adding Measurable Results",
+                explanation="Accomplishments describe activities and tools, but do not yet include quantifiable outcomes or scale.",
+                recommendation="An accomplishment could benefit from a measurable result (e.g., scale handled, latency improved, or tests written), provided the user can substantiate it."
+            ))
+
+    # --- 7. Section Organization (15 points) ---
+    sections_found = sum(1 for v in [structured.sections.summary, structured.sections.education, structured.sections.experience, structured.sections.skills, structured.sections.projects] if v and len(v.strip()) >= 20)
     if sections_found >= 4:
         score_organization = 15
         strengths.append(ResumeFinding(
@@ -257,21 +359,14 @@ async def analyze_resume(db: AsyncSession, profile_id: UUID, resume_id: str) -> 
         findings=findings,
         strengths=strengths,
         limitations=[
-            "This score measures completeness and organization, not ATS compatibility or hiring probability.",
-            "The skill matcher relies on a specific catalog and may miss niche skills.",
-            "Recommendations are based on rule-based extraction and do not verify the factual accuracy of your content."
+            "This score measures completeness and structure, not ATS compatibility or hiring probability.",
+            "Contact link presence is detected from text and document hyperlinks without requiring external web crawling.",
+            "Suggestions for metrics and links are optional, role-appropriate recommendations. Never invent accomplishments or credentials."
         ]
     )
 
-    resume.analysis_data = analysis_data.model_dump(mode="json")
-    await db.commit()
-    await db.refresh(resume)
+    return analysis_data
 
-    return ResumeAnalysisResponse(
-        id=resume.id,
-        status="success",
-        analysis=analysis_data
-    )
 
 async def get_resume_analysis(db: AsyncSession, profile_id: UUID, resume_id: str) -> ResumeAnalysisResponse:
     result = await db.execute(select(Resume).where(Resume.id == resume_id, Resume.profile_id == profile_id))

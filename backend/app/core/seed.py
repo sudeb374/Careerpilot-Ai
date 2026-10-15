@@ -10,7 +10,17 @@ async def seed_skills(db: AsyncSession):
         "Machine Learning": ["PyTorch", "TensorFlow", "Scikit-learn", "XGBoost", "CatBoost", "SHAP"],
         "Data Science": ["NumPy", "Pandas", "Matplotlib", "Seaborn"],
         "Web Development": ["FastAPI", "Streamlit"],
-        "Tools": ["Git", "GitHub", "Jupyter Notebook"]
+        "Tools": ["Git", "GitHub", "Jupyter Notebook"],
+        "Soft Skills": [
+            "Communication",
+            "Leadership",
+            "Teamwork",
+            "Problem Solving",
+            "Critical Thinking",
+            "Adaptability",
+            "Time Management",
+            "Presentation",
+        ],
     }
     
     aliases = {
@@ -25,7 +35,15 @@ async def seed_skills(db: AsyncSession):
         "Seaborn": ["seaborn"],
         "FastAPI": ["fast-api"],
         "GitHub": ["git hub"],
-        "Jupyter Notebook": ["jupyter", "jupyter-notebook"]
+        "Jupyter Notebook": ["jupyter", "jupyter-notebook"],
+        "Communication": ["verbal communication", "written communication", "interpersonal communication"],
+        "Leadership": ["team leadership", "mentorship"],
+        "Teamwork": ["collaboration", "cross-functional collaboration"],
+        "Problem Solving": ["problem-solving", "troubleshooting", "analytical skills"],
+        "Critical Thinking": ["analytical thinking", "critical evaluation"],
+        "Adaptability": ["flexibility", "agility"],
+        "Time Management": ["prioritization", "task management"],
+        "Presentation": ["public speaking", "presenting"],
     }
 
     # Insert Categories
