@@ -452,3 +452,82 @@ async def test_api_router_endpoints():
     finally:
         app.dependency_overrides.pop(get_current_profile, None)
         app.dependency_overrides.pop(get_db, None)
+
+
+# ============================================================================
+# 10. Regression: HTTP Method PATCH vs PUT for Application & Reminder Updates
+# ============================================================================
+
+@pytest.mark.anyio
+async def test_application_update_patch_vs_put_regression():
+    """
+    Regression test for Application Tracker:
+    - PUT /api/v1/applications/{id} returns 405 Method Not Allowed (the bug)
+    - PATCH /api/v1/applications/{id} returns 200 OK and correctly updates reminders
+    - PATCH /api/v1/applications/{id} with null reminder fields correctly clears reminders
+    """
+    student = make_test_profile()
+    opp = make_test_opportunity()
+    app_obj = make_test_application(student.id, opp, status="Applied")
+
+    db = AsyncMock()
+
+    async def mock_execute(stmt):
+        mock_res = MagicMock()
+        s = str(stmt).lower()
+        if "from applications" in s:
+            mock_res.scalar_one_or_none.return_value = app_obj
+            mock_res.scalars.return_value.all.return_value = [app_obj]
+        elif "application_status_history" in s:
+            mock_res.scalars.return_value.all.return_value = []
+        return mock_res
+
+    db.execute.side_effect = mock_execute
+
+    app.dependency_overrides[get_current_profile] = lambda: student
+    app.dependency_overrides[get_db] = lambda: db
+
+    try:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # 1. PUT returns 405 Method Not Allowed
+            put_resp = await client.put(
+                f"/api/v1/applications/{app_obj.id}",
+                json={
+                    "status": "Applied",
+                    "reminder_at": "2026-10-20T14:30:00Z",
+                    "reminder_note": "Follow up with HR",
+                },
+            )
+            assert put_resp.status_code == 405
+
+            # 2. PATCH successfully updates reminder
+            patch_resp = await client.patch(
+                f"/api/v1/applications/{app_obj.id}",
+                json={
+                    "status": "Applied",
+                    "reminder_at": "2026-10-20T14:30:00Z",
+                    "reminder_note": "Follow up with HR",
+                },
+            )
+            assert patch_resp.status_code == 200
+            patch_json = patch_resp.json()
+            assert patch_json["reminder_note"] == "Follow up with HR"
+            assert patch_json["reminder_at"] is not None
+
+            # 3. PATCH successfully clears / dismisses reminder when sending null values
+            dismiss_resp = await client.patch(
+                f"/api/v1/applications/{app_obj.id}",
+                json={
+                    "reminder_at": None,
+                    "reminder_note": None,
+                    "status_change_note": "Reminder cleared / dismissed.",
+                },
+            )
+            assert dismiss_resp.status_code == 200
+            dismiss_json = dismiss_resp.json()
+            assert dismiss_json["reminder_at"] is None
+            assert dismiss_json["reminder_note"] is None
+    finally:
+        app.dependency_overrides.pop(get_current_profile, None)
+        app.dependency_overrides.pop(get_db, None)

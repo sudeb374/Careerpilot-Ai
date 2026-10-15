@@ -310,7 +310,15 @@ async def test_analyze_job_resume_strengths_and_gaps():
         include_bullet_rewrites=True,
     )
 
-    res = await analyze_job_resume(db, candidate.id, req)
+    mock_llm_bullet = (
+        "Architected robust FastAPI backend services in Python, "
+        "improving response time by [insert metric, e.g. 25%]."
+    )
+    with patch(
+        "app.services.resume_recommendations.call_gemini_for_bullet_rewrite",
+        return_value=mock_llm_bullet,
+    ):
+        res = await analyze_job_resume(db, candidate.id, req)
 
     assert res.opportunity_id == opp.id
     assert res.opportunity_title == "Backend Python Developer"

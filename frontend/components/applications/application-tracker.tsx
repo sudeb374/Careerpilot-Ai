@@ -393,7 +393,7 @@ export function ApplicationTracker() {
       };
 
       const res = await fetch(`${API_URL}/api/v1/applications/${selectedApp.id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
@@ -448,6 +448,7 @@ export function ApplicationTracker() {
   };
 
   const handleDismissReminder = async (app: TrackedApplication) => {
+    setError(null);
     try {
       const {
         data: { session },
@@ -455,7 +456,7 @@ export function ApplicationTracker() {
       if (!session) return;
 
       const res = await fetch(`${API_URL}/api/v1/applications/${app.id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
@@ -467,13 +468,18 @@ export function ApplicationTracker() {
         }),
       });
 
-      if (res.ok) {
-        setSuccessMessage("Reminder dismissed.");
-        setTimeout(() => setSuccessMessage(null), 3000);
-        await loadData();
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || "Failed to dismiss reminder.");
       }
-    } catch (e) {
-      console.error("Failed to dismiss reminder", e);
+
+      setSuccessMessage("Reminder dismissed.");
+      setTimeout(() => setSuccessMessage(null), 3000);
+      await loadData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to dismiss reminder.";
+      setError(msg);
+      console.error("Failed to dismiss reminder", err);
     }
   };
 
