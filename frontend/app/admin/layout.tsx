@@ -5,25 +5,46 @@ import { Button } from "@/components/ui/button";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    redirect("/login");
+
+  // Validate authenticated identity using verified auth server user check
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    redirect("/login?next=/admin/opportunities");
+  }
+
+  // Obtain access token for backend profile verification
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    redirect("/login?next=/admin/opportunities");
   }
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  const res = await fetch(`${API_URL}/api/v1/profile`, {
-    headers: { Authorization: `Bearer ${session.access_token}` },
-    cache: "no-store",
-  });
+  let profile: { role?: string } | null = null;
 
-  if (!res.ok) {
-    redirect("/dashboard");
+  try {
+    const res = await fetch(`${API_URL}/api/v1/profile`, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      profile = await res.json();
+    }
+  } catch {
+    // If backend profile verification fails or network is unavailable, fail closed
+    profile = null;
   }
 
-  const profile = await res.json();
-  if (profile.role !== "admin") {
-    redirect("/dashboard");
+  // Strictly enforce admin role verification before rendering any admin shells
+  if (!profile || profile.role !== "admin") {
+    redirect("/dashboard?error=unauthorized");
   }
 
   return (

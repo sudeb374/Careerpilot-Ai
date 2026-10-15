@@ -1,5 +1,24 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  isCandidateRoute,
+  isAdminRoute,
+  isAuthRoute,
+  sanitizeRedirectUrl,
+} from '@/lib/auth/redirects'
+
+function createRedirectResponse(
+  request: NextRequest,
+  redirectUrl: URL,
+  supabaseResponse: NextResponse
+): NextResponse {
+  const redirectResponse = NextResponse.redirect(redirectUrl)
+  // Preserve refreshed session cookies so auth state is not lost across redirects
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+  })
+  return redirectResponse
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -35,22 +54,23 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
+  const search = request.nextUrl.search
 
-  // Protect dashboard routes
-  if (pathname.startsWith('/dashboard')) {
-    if (!user) {
-      // no user, potentially respond by redirecting the user to the login page
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
+  // 1. Protect unauthenticated access to candidate and admin routes
+  if (!user && (isCandidateRoute(pathname) || isAdminRoute(pathname))) {
+    const originalDestination = `${pathname}${search}`
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.search = `?next=${encodeURIComponent(originalDestination)}`
+    return createRedirectResponse(request, loginUrl, supabaseResponse)
   }
 
-  // Redirect logged-in users away from auth pages
-  if (user && (pathname === '/login' || pathname === '/register' || pathname === '/forgot-password')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+  // 2. Redirect authenticated users away from public auth pages (/login, /register, /forgot-password)
+  if (user && isAuthRoute(pathname)) {
+    const rawNext = request.nextUrl.searchParams.get('next')
+    const safeNext = sanitizeRedirectUrl(rawNext, '/dashboard')
+    const destinationUrl = new URL(safeNext, request.url)
+    return createRedirectResponse(request, destinationUrl, supabaseResponse)
   }
 
   return supabaseResponse

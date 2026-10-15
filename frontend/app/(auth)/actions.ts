@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sanitizeRedirectUrl } from "@/lib/auth/redirects";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -11,6 +12,9 @@ export async function login(formData: FormData) {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
   };
+
+  const rawNext = formData.get("next") as string | null;
+  const nextDestination = sanitizeRedirectUrl(rawNext, "/dashboard");
 
   try {
     const { error } = await supabase.auth.signInWithPassword(data);
@@ -24,7 +28,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(nextDestination);
 }
 
 export async function signup(formData: FormData) {
@@ -103,4 +107,3 @@ export async function updatePassword(formData: FormData) {
   }
   redirect("/dashboard");
 }
-

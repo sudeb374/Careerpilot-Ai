@@ -1,11 +1,32 @@
 import { signOut } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
 
-export default function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
+  const isUnauthorized = searchParams?.error === "unauthorized";
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
-      <div className="w-full max-w-md space-y-8 text-center">
+      <div className="w-full max-w-md space-y-6 text-center">
+        {isUnauthorized && (
+          <div
+            role="alert"
+            className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-left text-sm text-amber-900 shadow-sm"
+          >
+            <ShieldAlert className="h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <p className="font-semibold text-amber-950">Access Denied</p>
+              <p className="text-xs text-amber-800">
+                You do not have administrative privileges to access that page.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Dashboard
